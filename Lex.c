@@ -24,10 +24,14 @@ int main(int argc, const char* argv[]) {
     {
         printf("Failed to initialize SymbolTable. Exiting.\n");
     }
+    else if(!OpenFileStream()) //If failed to open file
+    {
+        printf("Failed to open file.");
+    }
     else
     {
-        OpenFileStream();
-        Lexan();
+
+        //TODO Add implementation
     }
     int i;
 
