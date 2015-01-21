@@ -1,0 +1,33 @@
+/*
+procedure lexan
+begin
+while(true)  {
+ ch = getchar();
+ if (ch is a space or ch is a tab)
+      ;   // do nothing
+  else if (ch is a newline)
+   increment lineno;
+ else if (ch is a digit)
+   begin
+        get the number into number
+     return NUM;
+end
+else if (ch is a letter)
+begin
+     get the identifier into value
+        pos = find(value);
+if (pos == NOT_FOUND)
+insert value into symboltable
+else if (pos == 1)
+return BEGIN
+else if(pos == 2)
+return END;
+return ID;
+   end
+ else if (ch == EOF)
+   return DONE;
+  else
+   return ch
+        endwhile
+end lexan
+*/
