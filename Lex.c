@@ -3,19 +3,16 @@
 
 #include <malloc.h>
 
+#include "Lex.h"
 #include "SymbolTable.h"
 
 
 //Globals
-FILE *m_file; //File pointer
-int m_lineNumber = 1; //Current line number
-SymbolTable* symbolTable; //Symbol Table
+FILE *m_file;               //File pointer
+SymbolTable* symbolTable;   //Symbol Table
+int m_lineNumber = 1;       //Current line number
 
-//prototypes
-int Lexan();
-int OpenFileStream();
-int InsertIntoSymbolTable(char*);
-int ReadySymbolTable();
+
 
 
 
@@ -24,7 +21,7 @@ int main(int argc, const char* argv[]) {
     {
         printf("Failed to initialize SymbolTable. Exiting.\n");
     }
-    else if(!OpenFileStream()) //If failed to open file
+    else if(!OpenFileStream()) //We failed to open file
     {
         printf("Failed to open file.");
     }
@@ -35,10 +32,10 @@ int main(int argc, const char* argv[]) {
     }
     int i;
 
-
-
+    InsertSymbolInSymbolTable(symbolTable, "Thisisisisis");
+    printf("Success = %d ", symbolTable->success);
     for(i = 0; i < symbolTable->size; i++)
-        printf("%s ", (char*)symbolTable->symbols[i]);
+        printf("%s ", TableLookupByIndex(symbolTable,i));
     FreeSymbolTable(symbolTable); //We're done! Good times were had by all.
 
 
@@ -50,7 +47,8 @@ int main(int argc, const char* argv[]) {
 
 int ReadySymbolTable()
 {
-    symbolTable = InitSymbolTable();
+    NewSymbolTable(symbolTable);
+    //symbolTable = InitSymbolTable();
     if(symbolTable == NULL) // Failed to allocate memory if this fails
     {
         return 0;
@@ -97,19 +95,12 @@ int Lexan()
 }
 
 
-int OpenFileStream()
+int OpenFileStream() //TODO add argument from argv
 {
     m_file = fopen("./temp.txt", "r");
-    if(m_file == NULL)
-        printf("File ptr is null \n");
-    return 0; //TODO return 1 on success, 0 on failure.
+    return m_file == NULL ? 0 : 1; //If failed to open file, return 0, else 1;
 }
 
-
-int InsertIntoSymbolTable(char* symbol)
-{
-    return 1;
-}
 
 char *GetSymbol(FILE* m_file)
 {

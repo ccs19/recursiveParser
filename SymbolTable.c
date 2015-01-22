@@ -16,6 +16,7 @@ SymbolTable* InitSymbolTable()
         return 0;
     else
     {
+        symbolTable->success = 0;
         symbolTable->size = 0;
         symbolTable->capacity = DEFAULT_SYMBOL_TABLE_SIZE;
         symbolTable->symbols = malloc(sizeof(void*) * symbolTable->capacity);
@@ -48,8 +49,10 @@ void FreeSymbolTable(SymbolTable* symbolTable)
 
 /*
 Checks if a specific value is present in the symbol table
+For efficiency, in this program we scan from "top to bottom"
+with the top being the last element
  */
-int IsInSymbolTable(SymbolTable* symbolTable, void* symbol)
+int SymbolExistsInTable(SymbolTable* symbolTable, void* symbol)
 {
     //TODO Fill in return values
     return 1;
@@ -76,8 +79,8 @@ inline static int DoubleSymbolTableSize(SymbolTable* symbolTable)
     void **symbols = realloc(symbolTable->symbols, sizeof(void*) * symbolTable->capacity * 2);
     if(symbols != NULL)
     {
-        symbolTable->symbols = symbols;
-        symbolTable->capacity *= 2;
+        symbolTable->symbols = symbols; //Assign realloc'd symbol table to new symbol table
+        symbolTable->capacity *= 2; //Double symbol table size
         return 1;
     }
     else

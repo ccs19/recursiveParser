@@ -1,25 +1,44 @@
-#ifndef SYMBOL_TABLEC_H
-#define SYMBOL_TABLEC_H
+#ifndef SYMBOL_TABLE_H
+#define SYMBOL_TABLE_H
+
+//NOTE: This is just a  type. The struct has a void ptr
+//so we can use whatever type we want. I just wanted to write
+//a resizeable "array" on my own that I could re-use whenever
+//I wanted a dynamically resizeable type. Credit goes to Google searches
+//and experimentation
+
+//Also, I apologize for the naming conventions. 
+//This is the standard at my new job, and I'm trying to stay consistent.
 
 
-#include <stddef.h> //For size_t type
-
+/*~~~~~~~~~~~~~~~~*/
 
 #define ID 300
 #define NUM 301
 #define BEGIN 400
 #define END 401
 
-
-//NOTE: This is just a vector. The struct has a void ptr
-//so we can use whatever type we want. I just wanted to write
-//a resizeable "array" on my own that I could re-use whenever
-//I wanted a dynamically resizeable type. Credit goes to Google searches.
+/*~~~~~~~~~~~~~~~~*/
 
 
 
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+/*Defines for adding to SymbolTable for ease of reading and
+ *automatic typecasting
+ *Where applicable, the m_success variable is set after each function call*/
+#define NewSymbolTable(TheSymbolTable) TheSymbolTable = InitSymbolTable()
+#define InsertSymbolInSymbolTable(TheSymbolTable, sym) TheSymbolTable->success = AddToSymbolTable(TheSymbolTable, (void*)sym)
+#define TableLookupByIndex(TheSymbolTable, index) (char*)GetFromSymbolTable(TheSymbolTable,index)
+#define EmptyTable(TheSymbolTable) FreeSymbolTable(TheSymbolTable)
+#define IsSymbolInTable(TheSymbolTable, sym) TheSymbolTable->success = SymbolExistsInTable(TheSymbolTable, (void*)sym)
+
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 typedef struct{
+    int success; //If function calls for symbol table are successful
     int size; //Number of items currently in symbol table
     int capacity; //Max size of symbol table
     void** symbols; //Symbol
@@ -40,7 +59,7 @@ int AddToSymbolTable(SymbolTable*, void*);
 void FreeSymbolTable(SymbolTable* );
 
 
-int IsInSymbolTable(SymbolTable* , void* );
+int SymbolExistsInTable(SymbolTable* , void* );
 
 void *GetFromSymbolTable(SymbolTable* , int );
 
