@@ -35,6 +35,7 @@
 #define IsSymbolInTable(TheSymbolTable, sym) TheSymbolTable->success = SymbolExistsInTable(TheSymbolTable, (void*)sym)
 
 
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 typedef struct{
