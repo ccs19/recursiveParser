@@ -1,15 +1,11 @@
 #ifndef SYMBOL_TABLE_H
 #define SYMBOL_TABLE_H
 
-//NOTE: This is just a  type. The struct has a void ptr
+//NOTE: This is just a vector. The struct has a void ptr
 //so we can use whatever type we want. I just wanted to write
 //a resizeable "array" on my own that I could re-use whenever
 //I wanted a dynamically resizeable type. Credit goes to Google searches
 //and experimentation
-
-//Also, I apologize for the naming conventions. 
-//This is the standard at my new job, and I'm trying to stay consistent.
-
 
 /*~~~~~~~~~~~~~~~~*/
 

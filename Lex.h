@@ -33,5 +33,5 @@ char *GetSymbol(FILE* m_file);
 
 void PrintSyntaxError(ErrorMessage);
 
-void FindSymbol(char*);
+int FindSymbol(int);
 #endif

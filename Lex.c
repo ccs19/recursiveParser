@@ -3,6 +3,7 @@
 
 #include <malloc.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "Lex.h"
 #include "SymbolTable.h"
@@ -13,7 +14,7 @@ FILE *m_file;               //File pointer
 SymbolTable* symbolTable;   //Symbol Table
 int m_lineNumber = 1;       //Current line number
 
-
+int nextChar = 0;
 //Constants
 const int MAX_SYMBOL_SIZE = 256;
 
@@ -29,14 +30,16 @@ int main(int argc, const char* argv[]) {
     }
     else
     {
-
-        //TODO Add implementation
+        while(nextChar != EOF)
+        {
+            Lexan();
+        }
     }
-    int i;
-    for(i = 0; i < symbolTable->size; i++)
+    //int i;
+/*    for(i = 0; i < symbolTable->size; i++)
         printf("\n%s ", TableLookupByIndex(symbolTable,i));
     FreeSymbolTable(symbolTable); //We're done! Good times were had by all.
-    PrintSyntaxError(IllegalIdentifier);
+    PrintSyntaxError(IllegalIdentifier);*/
 
     return 0;
 }
@@ -57,80 +60,38 @@ int ReadySymbolTable()
         return 1;
     }
 }
-/*
-procedure lexan
 
-begin
-
-while(true)? {
-?ch = getchar();
-?if (ch is a space or ch is a
-tab)
-????? ;   // do nothing
-
-? else if (ch is a
-        newline)
-???increment lineno;
-?else if (ch is a digit)
-???begin
-
-        get the number into number
-???  return NUM;
-end
-
-else if (ch is a letter)
-
-begin
-???  get the identifier into value
-
-        pos = find(value);
-
-if (pos == NOT_FOUND)
-
-else if (pos == 1)
-
-else if(pos == 2)
-
-return ID;
-
-?  end
-?else if (ch == EOF)
-???return DONE;
-
-? else
-???return ch
-
-endwhile
-*/
 /*===========================================================================*/
 
 int Lexan()
 {
-    int nextChar;
 
     while( (nextChar = fgetc(m_file)) != EOF )
     {
         if(nextChar == ' ' || nextChar == '\t')
         {
-            //do nothing if space or tab
+           ; //do nothing if space or tab
         }
         else if(nextChar == '\n')
         {
             m_lineNumber++; //If newline increase line count.
         }
-        else if(isdigit(nextChar)) //If digit
+        else if(isdigit(nextChar) || nextChar == '.') //If digit or decimal
         {
             int decimalCount = 0;
-            while(isdigit(nextChar = fgetc(m_file)) || nextChar == '.') //THIS MIGHT NOT WORK
+            while(isdigit(nextChar) || nextChar == '.') //Tested good! :D TODO: Need to test negative numbers!
             {
                 if(nextChar == '.') decimalCount++;
                 if(decimalCount > 1) PrintSyntaxError(IllegalNumber); //if multiple decimal points found, invalid number
+                nextChar = fgetc(m_file);
+                printf("%c", nextChar);
             }
+            ungetc(nextChar, m_file);
             return NUM;
         }
         else if(isalpha(nextChar)) //If character
         {
-
+            return FindSymbol(nextChar);
         }
     }
 
@@ -141,8 +102,9 @@ int Lexan()
 
 int OpenFileStream() //TODO add argument from argv
 {
-    m_file = fopen("./temp.txt", "r");
-    return m_file == NULL ? 0 : 1; //If failed to open file, return 0, else 1;
+    m_file = fopen("/home/christopher/ClionProjects/recusriveParser/temp.txt", "r");
+
+    return (m_file == NULL ? 0 : 1); //If failed to open file, return 0, else 1;
 }
 /*===========================================================================*/
 
@@ -190,22 +152,24 @@ void PrintSyntaxError(ErrorMessage errorMessage)
 /*===========================================================================*/
 
 //TODO TEST THIS CODE!!!!!
-void FindSymbol(char* nextChar)
+int FindSymbol(int nextChar)
 {
     int underScoreCount = 0; //Number of consecutive underscores
     int symbolSize = 0;      //Size of symbol
     char symbol[MAX_SYMBOL_SIZE]; //Symbol array
-    int position = -1;          //Location of symbol in table
+    //int position = -1;          //Location of symbol in table
 
     symbol[symbolSize] = nextChar;
-    while(isalpha(nextChar = fgetc(m_file)) || nextChar == '_') //
+    while(isalpha(nextChar) || nextChar == '_') //
     {
         if(nextChar == '_') underScoreCount++;
         else underScoreCount = 0;
         if(underScoreCount > 1) PrintSyntaxError(IllegalIdentifier); //If consecutive underscores, invalid
         if(symbolSize == MAX_SYMBOL_SIZE-1) PrintSyntaxError(SymbolBufferOverflow); //If no room for null char
         symbol[symbolSize++] = nextChar;
+        nextChar = fgetc(m_file);
     }
     symbol[symbolSize] = '\0'; //Insert null char
-
+    printf("Symbol: %s\n", symbol);
+    ungetc(nextChar, m_file);
 }
