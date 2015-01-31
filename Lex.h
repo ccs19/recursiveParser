@@ -8,6 +8,7 @@
 #define NUM 301
 #define BEGIN 400
 #define END 401
+#define DONE 402
 
 
 enum errmsg{
@@ -21,6 +22,10 @@ enum errmsg{
 };
 typedef enum errmsg ErrorMessage;
 
+
+#define BEGIN_INDEX 1
+#define END_INDEX 2
+#define NOT_IN_TABLE -1
 
 int ReadySymbolTable();
 

@@ -38,15 +38,14 @@ int main(int argc, const char* argv[]) {
         {
             m_lookAhead = Lexan();
         }
-        if(fgetc(m_file) != '.')
-        {
-            PrintSyntaxError(SyntaxError);
-        }
+        Match(END);
+        Match('.');
     }
     int i;
-   for(i = symbolTable->size-1; i != 0; i--)
+    for(i = symbolTable->size-1; i != 0; i--)
         printf("\n%s ", TableLookupByIndex(symbolTable,i));
     EmptyTable(symbolTable); //We're done! Good times were had by all!
+    fclose(m_file);
 
     return 0;
 }
@@ -84,15 +83,11 @@ int Lexan()
         {
             m_lineNumber++; //If newline increase line count.
         }
-        else if(isdigit(nextChar) || nextChar == '.') //If digit or decimal
+        else if(isdigit(nextChar) || nextChar == '-') //If digit or decimal
         {
-            int decimalCount = 0;
-            while(isdigit(nextChar) || nextChar == '.') //Tested good! :D TODO: Need to test negative numbers!
+            while(isdigit(nextChar)) //Tested good! :D TODO: Need to test negative numbers!
             {
-                if(nextChar == '.') decimalCount++;
-                if(decimalCount > 1) PrintSyntaxError(IllegalNumber); //if multiple decimal points found, invalid number
                 nextChar = fgetc(m_file);
-                printf("%c", nextChar);
             }
             ungetc(nextChar, m_file);
             return NUM;
@@ -101,6 +96,10 @@ int Lexan()
         {
             return FindSymbol(nextChar);
         }
+        else if(nextChar == EOF)
+            return DONE;
+        else
+            return nextChar;
     }
 }
 /*===========================================================================*/
@@ -159,13 +158,11 @@ void PrintSyntaxError(ErrorMessage errorMessage)
 
 /*===========================================================================*/
 
-//TODO TEST THIS CODE!!!!!
 int FindSymbol(int nextChar)
 {
-    int underScoreCount = 0; //Number of consecutive underscores
-    int symbolSize = 0;      //Size of symbol
-    char *symbol = malloc(sizeof(MAX_SYMBOL_SIZE)); //Symbol array
-    //int position = -1;          //Location of symbol in table
+    int underScoreCount = 0;                        //Number of consecutive underscores
+    int symbolSize = 0;                             //Size of symbol
+    char *symbol = malloc(sizeof(MAX_SYMBOL_SIZE)); //Var to hold symbol
 
     symbol[symbolSize] = nextChar;
     while(isalpha(nextChar) || nextChar == '_' || isdigit(nextChar)) //
@@ -181,19 +178,19 @@ int FindSymbol(int nextChar)
     //printf("Symbol: %s\n", symbol);
     ungetc(nextChar, m_file);
     IsSymbolInTable(symbolTable, symbol);
-    if(underScoreCount != 0)
+    if(underScoreCount != 0)            //Check for symbol ending in underscore
     {
         PrintSyntaxError(IllegalIdentifier);
     }
-    else if(symbolTable->result == -1)
+    else if(symbolTable->result == NOT_IN_TABLE)
     {
         InsertSymbol(symbolTable, symbol); //TODO Fix memory leak
     }
-    else if(symbolTable->result == 1) //Begin index
+    else if(symbolTable->result == BEGIN_INDEX)
     {
         return BEGIN;
     }
-    else if(symbolTable->result == 2) //End index
+    else if(symbolTable->result == END_INDEX)
     {
         return END;
     }
@@ -201,10 +198,25 @@ int FindSymbol(int nextChar)
 }
 
 
+/*===========================================================================*/
+
 void Match(int type)
 {
     if(m_lookAhead == type)
         m_lookAhead = Lexan();
     else
         PrintSyntaxError(SyntaxError);
+}
+
+
+
+
+/*===========================================================================*/
+
+
+void AssignStatement()
+{
+    Match(ID);
+    if(m_lookAhead != '=')
+        ;
 }
