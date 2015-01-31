@@ -38,8 +38,10 @@ int main(int argc, const char* argv[]) {
         {
             m_lookAhead = Lexan();
         }
-        Match(END);
-        Match('.');
+        if(fgetc(m_file) != '.')
+        {
+            PrintSyntaxError(SyntaxError);
+        }
     }
     int i;
    for(i = symbolTable->size-1; i != 0; i--)
@@ -71,8 +73,9 @@ int ReadySymbolTable()
 int Lexan()
 {
 
-    while( (nextChar = fgetc(m_file)) != EOF )
+    while( 1 )
     {
+        nextChar = fgetc(m_file);
         if(nextChar == ' ' || nextChar == '\t')
         {
            ; //do nothing if space or tab
@@ -99,9 +102,6 @@ int Lexan()
             return FindSymbol(nextChar);
         }
     }
-
-    fclose(m_file);
-    return 0;
 }
 /*===========================================================================*/
 
@@ -181,7 +181,11 @@ int FindSymbol(int nextChar)
     //printf("Symbol: %s\n", symbol);
     ungetc(nextChar, m_file);
     IsSymbolInTable(symbolTable, symbol);
-    if(symbolTable->result == -1)
+    if(underScoreCount != 0)
+    {
+        PrintSyntaxError(IllegalIdentifier);
+    }
+    else if(symbolTable->result == -1)
     {
         InsertSymbol(symbolTable, symbol); //TODO Fix memory leak
     }
