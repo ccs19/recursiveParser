@@ -21,44 +21,40 @@
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-/*Defines for adding to SymbolTable for ease of reading and
+/*Defines for adding to Vector for ease of reading and
  *automatic typecasting
  *Where applicable, the m_success variable is set after each function call*/
-#define NewSymbolTable(TheSymbolTable) TheSymbolTable = InitSymbolTable()
-#define InsertSymbolInSymbolTable(TheSymbolTable, sym) TheSymbolTable->success = AddToSymbolTable(TheSymbolTable, (void*)sym)
-#define TableLookupByIndex(TheSymbolTable, index) (char*)GetFromSymbolTable(TheSymbolTable,index)
-#define EmptyTable(TheSymbolTable) FreeSymbolTable(TheSymbolTable)
-#define IsSymbolInTable(TheSymbolTable, sym) TheSymbolTable->success = SymbolExistsInTable(TheSymbolTable, (void*)sym)
-
-
-
+#define NewSymbolTable(TheSymbolTable) TheSymbolTable = InitVector()
+#define InsertSymbol(TheSymbolTable, sym) TheSymbolTable->result = AddToVector(TheSymbolTable, (void*)sym)
+#define TableLookupByIndex(TheSymbolTable, index) (char*)GetFromVector(TheSymbolTable,index)
+#define EmptyTable(TheSymbolTable) DestroyVector(TheSymbolTable)
+#define IsSymbolInTable(TheSymbolTable, sym) ItemExistsInVector(TheSymbolTable, (void*)sym)
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 typedef struct{
-    int success; //If function calls for symbol table are successful
-    int size; //Number of items currently in symbol table
-    int capacity; //Max size of symbol table
+    int result;    //Sets various function return values
+    int size;       //Number of items currently in symbol table
+    int capacity;   //Max size of symbol table
     void** symbols; //Symbol
-} SymbolTable;
+} Vector;
 
 //symbolTable -- pointer to symbolTable to initialize
-//return 1 on success, else failure
-SymbolTable* InitSymbolTable();
+//return 1 on result, else failure
+Vector *InitVector();
 
 //symbol -- Symbol to add
-//symbolTable -- SymbolTable to add symbol to
+//symbolTable -- Vector to add symbol to
 //size -- size of item to add to table
-//return 1 on success, else failure
-int AddToSymbolTable(SymbolTable*, void*);
+//return 1 on result, else failure
+int AddToVector(Vector *, void *);
 
 //Frees memory alloc'd to symbol table
-//symbolTable -- The symbol table to free
-void FreeSymbolTable(SymbolTable* );
+//Vector -- The vector to free
+void DestroyVector(Vector *);
 
+void ItemExistsInVector(Vector *, void *);
 
-int SymbolExistsInTable(SymbolTable* , void* );
-
-void *GetFromSymbolTable(SymbolTable* , int );
+void *GetFromVector(Vector *, int);
 
 
 

@@ -4,6 +4,7 @@
 #include <malloc.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "Lex.h"
 #include "SymbolTable.h"
@@ -11,10 +12,11 @@
 
 //Globals
 FILE *m_file;               //File pointer
-SymbolTable* symbolTable;   //Symbol Table
+Vector * symbolTable;   //Symbol Table
 int m_lineNumber = 1;       //Current line number
-
+int m_lookAhead = 0;
 int nextChar = 0;
+
 //Constants
 const int MAX_SYMBOL_SIZE = 256;
 
@@ -22,7 +24,7 @@ const int MAX_SYMBOL_SIZE = 256;
 int main(int argc, const char* argv[]) {
     if(!ReadySymbolTable()) //This should only fail if malloc fails
     {
-        printf("Failed to initialize SymbolTable. Exiting.\n");
+        printf("Failed to initialize Vector. Exiting.\n");
     }
     else if(!OpenFileStream()) //We failed to open file
     {
@@ -30,16 +32,19 @@ int main(int argc, const char* argv[]) {
     }
     else
     {
-        while(nextChar != EOF)
+        m_lookAhead = Lexan();
+        Match(BEGIN);
+        while(m_lookAhead != END)
         {
-            Lexan();
+            m_lookAhead = Lexan();
         }
+        Match(END);
+        Match('.');
     }
-    //int i;
-/*    for(i = 0; i < symbolTable->size; i++)
+    int i;
+   for(i = symbolTable->size-1; i != 0; i--)
         printf("\n%s ", TableLookupByIndex(symbolTable,i));
-    FreeSymbolTable(symbolTable); //We're done! Good times were had by all.
-    PrintSyntaxError(IllegalIdentifier);*/
+    EmptyTable(symbolTable); //We're done! Good times were had by all!
 
     return 0;
 }
@@ -47,16 +52,16 @@ int main(int argc, const char* argv[]) {
 int ReadySymbolTable()
 {
     NewSymbolTable(symbolTable);
-    //symbolTable = InitSymbolTable();
+    //symbolTable = InitVector();
     if(symbolTable == NULL) // Failed to allocate memory if this fails
     {
         return 0;
     }
     else
     {
-        AddToSymbolTable(symbolTable, "-");
-        AddToSymbolTable(symbolTable, "begin");
-        AddToSymbolTable(symbolTable, "end");
+        AddToVector(symbolTable, "-");
+        AddToVector(symbolTable, "begin");
+        AddToVector(symbolTable, "end");
         return 1;
     }
 }
@@ -125,7 +130,7 @@ void PrintSyntaxError(ErrorMessage errorMessage)
         case MissingSquareBracket:
             printf("\'Missing square bracket\'");
             break;
-        case MissingParend:
+        case MissingParen:
             printf("\'Parend Mismatch\'");
             break;
         case IllegalNumber:
@@ -139,6 +144,9 @@ void PrintSyntaxError(ErrorMessage errorMessage)
             break;
         case SymbolBufferOverflow:
             printf("\'Symbol size exceeds max of %d\'", MAX_SYMBOL_SIZE);
+            break;
+        case SyntaxError:
+            printf("\'Syntax Error\'");
             break;
         default:
             printf("\'Unknown Error\'");
@@ -156,11 +164,11 @@ int FindSymbol(int nextChar)
 {
     int underScoreCount = 0; //Number of consecutive underscores
     int symbolSize = 0;      //Size of symbol
-    char symbol[MAX_SYMBOL_SIZE]; //Symbol array
+    char *symbol = malloc(sizeof(MAX_SYMBOL_SIZE)); //Symbol array
     //int position = -1;          //Location of symbol in table
 
     symbol[symbolSize] = nextChar;
-    while(isalpha(nextChar) || nextChar == '_') //
+    while(isalpha(nextChar) || nextChar == '_' || isdigit(nextChar)) //
     {
         if(nextChar == '_') underScoreCount++;
         else underScoreCount = 0;
@@ -170,6 +178,29 @@ int FindSymbol(int nextChar)
         nextChar = fgetc(m_file);
     }
     symbol[symbolSize] = '\0'; //Insert null char
-    printf("Symbol: %s\n", symbol);
+    //printf("Symbol: %s\n", symbol);
     ungetc(nextChar, m_file);
+    IsSymbolInTable(symbolTable, symbol);
+    if(symbolTable->result == -1)
+    {
+        InsertSymbol(symbolTable, symbol); //TODO Fix memory leak
+    }
+    else if(symbolTable->result == 1) //Begin index
+    {
+        return BEGIN;
+    }
+    else if(symbolTable->result == 2) //End index
+    {
+        return END;
+    }
+    return ID;
+}
+
+
+void Match(int type)
+{
+    if(m_lookAhead == type)
+        m_lookAhead = Lexan();
+    else
+        PrintSyntaxError(SyntaxError);
 }
