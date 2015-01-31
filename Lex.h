@@ -31,11 +31,25 @@ int ReadySymbolTable();
 
 int Lexan();
 
-int OpenFileStream();
+int OpenFileStream(const char*);
 
 void PrintSyntaxError(ErrorMessage);
 
-int FindSymbol(int);
+int FindSymbol();
+
+int FindDigit();
 
 void Match(int);
+
+void AssignStatement();
+
+void Expression();
+
+void Term();
+
+void Factor();
+
+void PrintSymbols();
+
+
 #endif

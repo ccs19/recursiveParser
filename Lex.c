@@ -26,7 +26,7 @@ int main(int argc, const char* argv[]) {
     {
         printf("Failed to initialize Vector. Exiting.\n");
     }
-    else if(!OpenFileStream()) //We failed to open file
+    else if(!OpenFileStream(argv[1])) //We failed to open file
     {
         printf("Failed to open file.");
     }
@@ -36,16 +36,13 @@ int main(int argc, const char* argv[]) {
         Match(BEGIN);
         while(m_lookAhead != END)
         {
-            m_lookAhead = Lexan();
+            AssignStatement();
         }
         Match(END);
         Match('.');
     }
-    int i;
-    for(i = symbolTable->size-1; i != 0; i--)
-        printf("\n%s ", TableLookupByIndex(symbolTable,i));
-    EmptyTable(symbolTable); //We're done! Good times were had by all!
-    fclose(m_file);
+
+    PrintSymbols();
 
     return 0;
 }
@@ -60,9 +57,9 @@ int ReadySymbolTable()
     }
     else
     {
-        AddToVector(symbolTable, "-");
-        AddToVector(symbolTable, "begin");
-        AddToVector(symbolTable, "end");
+        InsertSymbol(symbolTable, "-");
+        InsertSymbol(symbolTable, "begin");
+        InsertSymbol(symbolTable, "end");
         return 1;
     }
 }
@@ -83,14 +80,9 @@ int Lexan()
         {
             m_lineNumber++; //If newline increase line count.
         }
-        else if(isdigit(nextChar) || nextChar == '-') //If digit or decimal
+        else if(isdigit(nextChar) || nextChar == '-') //If digit or negative
         {
-            while(isdigit(nextChar)) //Tested good! :D TODO: Need to test negative numbers!
-            {
-                nextChar = fgetc(m_file);
-            }
-            ungetc(nextChar, m_file);
-            return NUM;
+            return FindDigit();
         }
         else if(isalpha(nextChar)) //If character
         {
@@ -104,23 +96,17 @@ int Lexan()
 }
 /*===========================================================================*/
 
-int OpenFileStream() //TODO add argument from argv
+int OpenFileStream(const char* fileName) //TODO add argument from argv
 {
-    m_file = fopen("/home/christopher/ClionProjects/recusriveParser/temp.txt", "r");
-
+    m_file = fopen(fileName, "r");
     return (m_file == NULL ? 0 : 1); //If failed to open file, return 0, else 1;
 }
-/*===========================================================================*/
-
-char *GetSymbol(FILE* m_file)
-{
-    ungetc(1, m_file);
-    return 0;
-}
 
 
 
 /*===========================================================================*/
+
+
 void PrintSyntaxError(ErrorMessage errorMessage)
 {
     printf("\nLine %d contains error ",m_lineNumber);
@@ -134,7 +120,7 @@ void PrintSyntaxError(ErrorMessage errorMessage)
             break;
         case IllegalNumber:
             printf("\'Illegal Number\'");
-            break;//Too many decimal Places
+            break;
         case IllegalIdentifier:
             printf("\'Illegal Identifier\'");
             break;
@@ -158,7 +144,7 @@ void PrintSyntaxError(ErrorMessage errorMessage)
 
 /*===========================================================================*/
 
-int FindSymbol(int nextChar)
+int FindSymbol()
 {
     int underScoreCount = 0;                        //Number of consecutive underscores
     int symbolSize = 0;                             //Size of symbol
@@ -218,5 +204,86 @@ void AssignStatement()
 {
     Match(ID);
     if(m_lookAhead != '=')
-        ;
+    {
+        PrintSyntaxError(SyntaxError);
+    }
+    else
+    {
+        Match(m_lookAhead);
+        Expression();
+    }
+
+}
+
+/*===========================================================================*/
+
+
+void Term()
+{
+    Factor();
+    while(m_lookAhead == '*' || m_lookAhead == '/')
+    {
+        Match(m_lookAhead);
+        Factor();
+    }
+}
+
+/*===========================================================================*/
+
+void Factor()
+{
+    if(m_lookAhead == ID)
+    {
+        Match(ID);
+    }
+    else if(m_lookAhead == NUM)
+    {
+        Match(NUM);
+    }
+    else if(m_lookAhead == '(')
+    {
+        Match('(');
+        Expression();
+        Match(')');
+    }
+    else
+        PrintSyntaxError(SyntaxError);
+}
+
+/*===========================================================================*/
+
+
+void Expression()
+{
+    Term();
+    while(m_lookAhead == '+' || m_lookAhead == '-')
+    {
+        Match(m_lookAhead);
+        Term();
+    }
+
+}
+
+void PrintSymbols()
+{
+    int i;
+    printf("Symbol List\n===============");
+    for(i = symbolTable->size-1; i != 0; i--)
+        printf("\n%s ", TableLookupByIndex(symbolTable,i));
+    EmptyTable(symbolTable); //We're done! Good times were had by all!
+    fclose(m_file);
+}
+
+
+int FindDigit()
+{
+    if(nextChar == '-')
+        nextChar =  fgetc(m_file); //To ensure negative numbers are accounted for
+    while(isdigit(nextChar)) //Tested good! :D
+    {
+        nextChar = fgetc(m_file);
+    }
+    ungetc(nextChar, m_file);
+    return NUM;
+
 }
