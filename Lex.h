@@ -18,7 +18,9 @@ enum errmsg{
     IllegalIdentifier,    //Unknown identifier, e.g. %$# or consecutive underscores
     UnterminatedComment,  //Comment not properly terminated
     SymbolBufferOverflow,  //If symbol length exceeds maximum symbol size
-    SyntaxError
+    SyntaxError,            //Generic syntax error
+    UnexpectedAssignment,   //Invalid assignment
+    InvalidLineEnding       //If improperly terminated line
 };
 typedef enum errmsg ErrorMessage;
 
@@ -51,5 +53,5 @@ void Factor();
 
 void PrintSymbols();
 
-
+void HandleEndLine();
 #endif

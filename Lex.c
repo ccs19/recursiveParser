@@ -17,6 +17,10 @@ int m_lineNumber = 1;       //Current line number
 int m_lookAhead = 0;
 int nextChar = 0;
 
+
+//DEBUG
+char* lastSymbol;
+
 //Constants
 const int MAX_SYMBOL_SIZE = 256;
 
@@ -68,25 +72,36 @@ int ReadySymbolTable()
 
 int Lexan()
 {
-
-    while( 1 )
+    for(;;) //while( 1 )
     {
         nextChar = fgetc(m_file);
+        if(nextChar == '~')//NOM NOM comments
+        {                  //Eat line of comments
+            while(nextChar != '\n')
+            {
+                nextChar = fgetc(m_file);
+            }
+            nextChar = fgetc(m_file);
+        }
         if(nextChar == ' ' || nextChar == '\t')
         {
            ; //do nothing if space or tab
         }
-        else if(nextChar == '\n')
+        else if(nextChar == ';')
         {
-            m_lineNumber++; //If newline increase line count.
+            HandleEndLine();
         }
-        else if(isdigit(nextChar) || nextChar == '-') //If digit or negative
+        else if(isdigit(nextChar)
+                || (nextChar == '-'     //If negative
+                && (m_lookAhead != NUM  //And lookahead not a NUM
+                &&  m_lookAhead != ID)) //And lookahead not an ID
+                )
         {
             return FindDigit();
         }
         else if(isalpha(nextChar)) //If character
         {
-            return FindSymbol(nextChar);
+            return FindSymbol();
         }
         else if(nextChar == EOF)
             return DONE;
@@ -133,6 +148,12 @@ void PrintSyntaxError(ErrorMessage errorMessage)
         case SyntaxError:
             printf("\'Syntax Error\'");
             break;
+        case UnexpectedAssignment:
+            printf("\'Unexpected Assignment\'");
+            break;
+        case InvalidLineEnding:
+            printf("\'Invalid Line Ending\'");
+            break;
         default:
             printf("\'Unknown Error\'");
             break;
@@ -149,7 +170,7 @@ int FindSymbol()
     int underScoreCount = 0;                        //Number of consecutive underscores
     int symbolSize = 0;                             //Size of symbol
     char *symbol = malloc(sizeof(MAX_SYMBOL_SIZE)); //Var to hold symbol
-
+    lastSymbol = symbol;
     symbol[symbolSize] = nextChar;
     while(isalpha(nextChar) || nextChar == '_' || isdigit(nextChar)) //
     {
@@ -205,7 +226,7 @@ void AssignStatement()
     Match(ID);
     if(m_lookAhead != '=')
     {
-        PrintSyntaxError(SyntaxError);
+        PrintSyntaxError(UnexpectedAssignment);
     }
     else
     {
@@ -247,7 +268,7 @@ void Factor()
         Match(')');
     }
     else
-        PrintSyntaxError(SyntaxError);
+        PrintSyntaxError(MissingParen);
 }
 
 /*===========================================================================*/
@@ -264,6 +285,10 @@ void Expression()
 
 }
 
+
+/*===========================================================================*/
+
+
 void PrintSymbols()
 {
     int i;
@@ -273,6 +298,10 @@ void PrintSymbols()
     EmptyTable(symbolTable); //We're done! Good times were had by all!
     fclose(m_file);
 }
+
+
+/*===========================================================================*/
+
 
 
 int FindDigit()
@@ -285,5 +314,17 @@ int FindDigit()
     }
     ungetc(nextChar, m_file);
     return NUM;
+}
+
+
+/*===========================================================================*/
+
+void HandleEndLine()
+{
+    nextChar = fgetc(m_file);
+    while( nextChar == ' ' || nextChar == '\t' ) //ignore spaces and tabs
+        nextChar == fgetc(m_file);
+    if( nextChar == '\n' || nextChar == EOF)
+        m_lineNumber++;
 
 }
