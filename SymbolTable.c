@@ -45,6 +45,11 @@ int AddToVector(Vector *vector, void *symbol)
 symbolTable -- The symbol table to free*/
 void DestroyVector(Vector *symbolTable)
 {
+    int i;
+    for(i = symbolTable->size; i > 0; i--)
+    {
+        free(symbolTable->items[i]);
+    }
     free(symbolTable->items);
 }//TODO Check for memory leaks
 
@@ -90,13 +95,13 @@ void* GetFromVector(Vector *vector, int index)
 
 //Symbol Table to double in size.
 //This should not be called from outside this implementation.
-inline static int DoubleVectorSize(Vector *symbolTable)
+inline static int DoubleVectorSize(Vector *vector)
 {
-    void **symbols = realloc(symbolTable->items, sizeof(void*) * symbolTable->capacity * 2);
+    void **symbols = realloc(vector->items, sizeof(void*) * vector->capacity * 2);
     if(symbols != NULL)
     {
-        symbolTable->items = symbols; //Assign realloc'd symbol table to new symbol table
-        symbolTable->capacity *= 2; //Double symbol table size
+        vector->items = symbols; //Assign realloc'd symbol table to new symbol table
+        vector->capacity *= 2; //Double symbol table size
         return 1;
     }
     else

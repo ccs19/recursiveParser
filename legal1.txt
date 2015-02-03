@@ -4,5 +4,5 @@ test=this+is-a/test;
 ~a comment
 ~it's super amazing
 ~and it works like majick
-tree=leaves+green/toto-evergreen;
+tree=((((5)-(5))));
 end.;

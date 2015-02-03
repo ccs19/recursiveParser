@@ -47,7 +47,7 @@ int main(int argc, const char* argv[]) {
     }
 
     PrintSymbols();
-
+    EmptyTable(symbolTable); //We're done! Good times were had by all!
     return 0;
 }
 /*===========================================================================*/
@@ -61,9 +61,16 @@ int ReadySymbolTable()
     }
     else
     {
-        InsertSymbol(symbolTable, "-");
-        InsertSymbol(symbolTable, "begin");
-        InsertSymbol(symbolTable, "end");
+        char *begin = malloc(sizeof("begin\0"));
+        char *end = malloc(sizeof("end\0"));
+        char *dash = malloc(sizeof("-\0"));
+        begin = "begin\0";
+        end = "end\0";
+        dash = "-\0";
+
+        InsertSymbol(symbolTable, dash);
+        InsertSymbol(symbolTable, begin);
+        InsertSymbol(symbolTable, end);
         return 1;
     }
 }
@@ -87,7 +94,6 @@ int Lexan()
                     while (nextChar != '\n') {
                         nextChar = fgetc(m_file);
                     }
-                    nextChar = fgetc(m_file);
                     m_lineNumber++;
                 }
             }
@@ -97,17 +103,17 @@ int Lexan()
            ; //do nothing if space or tab
         }
         else if(isdigit(nextChar)
-                || (nextChar == '-'      //If negative
-                && (m_lookAhead != NUM   //And lookahead not a NUM
-                &&  m_lookAhead != ID    //And lookahead not an ID
-                &&  m_lookAhead != ')'   //And lookahead not a close paren
-                &&  m_lookAhead != '(')) //And lookahead not a open paren
+                //|| (nextChar == '-'      //If negative
+               // && (m_lookAhead != NUM   //And lookahead not a NUM
+               // &&  m_lookAhead != ID    //And lookahead not an ID
+                /*&&  m_lookAhead != ')'   //And lookahead not a close paren
+                &&  m_lookAhead != '('*///)) //And lookahead not a open paren
                 )
         {
             return FindDigit();
         }
-        else if(isalpha(nextChar) || //If character
-                m_lookAhead == '(')
+        else if(isalpha(nextChar) //|| //If character
+                /*m_lookAhead == '('*/)
         {
             return FindSymbol();
         }
@@ -180,9 +186,7 @@ int FindSymbol()
     char *symbol = malloc(sizeof(MAX_SYMBOL_SIZE)); //Var to hold symbol
     lastSymbol = symbol;
     symbol[symbolSize] = nextChar;
-    while(isalpha(nextChar) || nextChar == '_' ||
-            (isdigit(nextChar) && symbolSize != 0) //Hack job to account for negative numbers and symbols
-            || (nextChar == '-' && symbolSize == 0))
+    while(isalpha(nextChar) || nextChar == '_' || isdigit(nextChar)) //
     {
         if(nextChar == '_') underScoreCount++;
         else underScoreCount = 0;
@@ -190,8 +194,6 @@ int FindSymbol()
         if(symbolSize == MAX_SYMBOL_SIZE-1) PrintSyntaxError(SymbolBufferOverflow); //If no room for null char
         symbol[symbolSize++] = nextChar;
         nextChar = fgetc(m_file);
-        if(symbol[symbolSize-1] == '-')
-            symbolSize--;
     }
     symbol[symbolSize] = '\0'; //Insert null char
     ungetc(nextChar, m_file);
@@ -199,10 +201,6 @@ int FindSymbol()
     if(underScoreCount != 0)            //Check for symbol ending in underscore
     {
         PrintSyntaxError(IllegalIdentifier);
-    }
-    else if(symbolSize == 0)
-    {
-        return FindDigit();
     }
     else if(symbolTable->result == NOT_IN_TABLE)
     {
@@ -224,10 +222,14 @@ int FindSymbol()
 
 void Match(int type)
 {
-    if(m_lookAhead == type)
+    if (m_lookAhead == type)
+    {
         m_lookAhead = Lexan();
+    }
     else
+    {
         PrintSyntaxError(SyntaxError);
+    }
 }
 
 
@@ -307,11 +309,13 @@ void Expression()
 void PrintSymbols()
 {
     int i;
-    printf("Symbol List\n===============");
+    printf("\n========================\nThis is a valid program!\n========================\n\n");
+    printf("===============\nSymbol List\n===============");
     for(i = symbolTable->size-1; i != 0; i--)
         printf("\n%s ", TableLookupByIndex(symbolTable,i));
-    EmptyTable(symbolTable); //We're done! Good times were had by all!
+
     fclose(m_file);
+    printf("\n");
 }
 
 
@@ -341,9 +345,4 @@ void HandleEndLine()
         nextChar = fgetc(m_file);
     if( nextChar == '\n' || nextChar == EOF)
         m_lineNumber++;
-    else if( isalnum(nextChar) )
-    {
-        m_lookAhead = Lexan();
-    }
 }
-
