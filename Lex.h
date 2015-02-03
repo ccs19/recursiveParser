@@ -66,4 +66,6 @@ void Factor();
 void PrintSymbols();
 
 void HandleEndLine();
+
+void HandleComments();
 #endif

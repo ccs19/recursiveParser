@@ -12,7 +12,7 @@
 
 //Globals
 FILE *m_file;               //File pointer
-Vector * symbolTable;   //Symbol Table
+Vector * symbolTable;       //Symbol Table
 int m_lineNumber = 1;       //Current line number
 int m_lookAhead = 0;
 int nextChar = 0;
@@ -75,23 +75,14 @@ int Lexan()
     for(;;) //while( 1 )
     {
         nextChar = fgetc(m_file);
-        while(nextChar == '~') {
-            if (nextChar == '~')//NOM NOM comments
-            {                  //Eat line of comments
-                while (nextChar != '\n') {
-                    nextChar = fgetc(m_file);
-                }
-                nextChar = fgetc(m_file);
-                m_lineNumber++;
-            }
-        }
-        if(nextChar == ' ' || nextChar == '\t')
-        {
-           ; //do nothing if space or tab
-        }
-        else if(nextChar == ';')
+        if(nextChar == ';')
         {
             HandleEndLine();
+        }
+
+        else if(nextChar == ' ' || nextChar == '\t')
+        {
+           ; //do nothing if space or tab
         }
         else if(isdigit(nextChar)
                 || (nextChar == '-'      //If negative
@@ -103,8 +94,8 @@ int Lexan()
         {
             return FindDigit();
         }
-        else if(isalpha(nextChar) ||
-                m_lookAhead == '(') //If character
+        else if(isalpha(nextChar) || //If character
+                m_lookAhead == '(')
         {
             return FindSymbol();
         }
@@ -338,4 +329,22 @@ void HandleEndLine()
         nextChar == fgetc(m_file);
     if( nextChar == '\n' || nextChar == EOF)
         m_lineNumber++;
+    else if( isalnum(nextChar) )
+    {
+        m_lookAhead = Lexan();
+    }
+}
+
+void HandleComments()
+{
+    while(nextChar == '~') {
+        if (nextChar == '~')//NOM NOM comments
+        {                  //Eat line of comments
+            while (nextChar != '\n') {
+                nextChar = fgetc(m_file);
+            }
+            nextChar = fgetc(m_file);
+            m_lineNumber++;
+        }
+    }
 }
