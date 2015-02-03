@@ -75,13 +75,15 @@ int Lexan()
     for(;;) //while( 1 )
     {
         nextChar = fgetc(m_file);
-        if(nextChar == '~')//NOM NOM comments
-        {                  //Eat line of comments
-            while(nextChar != '\n')
-            {
+        while(nextChar == '~') {
+            if (nextChar == '~')//NOM NOM comments
+            {                  //Eat line of comments
+                while (nextChar != '\n') {
+                    nextChar = fgetc(m_file);
+                }
                 nextChar = fgetc(m_file);
+                m_lineNumber++;
             }
-            nextChar = fgetc(m_file);
         }
         if(nextChar == ' ' || nextChar == '\t')
         {
@@ -92,14 +94,17 @@ int Lexan()
             HandleEndLine();
         }
         else if(isdigit(nextChar)
-                || (nextChar == '-'     //If negative
-                && (m_lookAhead != NUM  //And lookahead not a NUM
-                &&  m_lookAhead != ID)) //And lookahead not an ID
+                || (nextChar == '-'      //If negative
+                && (m_lookAhead != NUM   //And lookahead not a NUM
+                &&  m_lookAhead != ID    //And lookahead not an ID
+                &&  m_lookAhead != ')'   //And lookahead not a close paren
+                &&  m_lookAhead != '(')) //And lookahead not a open paren
                 )
         {
             return FindDigit();
         }
-        else if(isalpha(nextChar)) //If character
+        else if(isalpha(nextChar) ||
+                m_lookAhead == '(') //If character
         {
             return FindSymbol();
         }
@@ -172,7 +177,9 @@ int FindSymbol()
     char *symbol = malloc(sizeof(MAX_SYMBOL_SIZE)); //Var to hold symbol
     lastSymbol = symbol;
     symbol[symbolSize] = nextChar;
-    while(isalpha(nextChar) || nextChar == '_' || isdigit(nextChar)) //
+    while(isalpha(nextChar) || nextChar == '_' ||
+            (isdigit(nextChar) && symbolSize != 0) //Hack job to account for negative numbers and symbols
+            || (nextChar == '-' && symbolSize == 0))
     {
         if(nextChar == '_') underScoreCount++;
         else underScoreCount = 0;
@@ -180,14 +187,19 @@ int FindSymbol()
         if(symbolSize == MAX_SYMBOL_SIZE-1) PrintSyntaxError(SymbolBufferOverflow); //If no room for null char
         symbol[symbolSize++] = nextChar;
         nextChar = fgetc(m_file);
+        if(symbol[symbolSize-1] == '-')
+            symbolSize--;
     }
     symbol[symbolSize] = '\0'; //Insert null char
-    //printf("Symbol: %s\n", symbol);
     ungetc(nextChar, m_file);
     IsSymbolInTable(symbolTable, symbol);
     if(underScoreCount != 0)            //Check for symbol ending in underscore
     {
         PrintSyntaxError(IllegalIdentifier);
+    }
+    else if(symbolSize == 0)
+    {
+        return FindDigit();
     }
     else if(symbolTable->result == NOT_IN_TABLE)
     {
@@ -326,5 +338,4 @@ void HandleEndLine()
         nextChar == fgetc(m_file);
     if( nextChar == '\n' || nextChar == EOF)
         m_lineNumber++;
-
 }

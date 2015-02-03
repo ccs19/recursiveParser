@@ -12,16 +12,16 @@ const int DEFAULT_SYMBOL_TABLE_SIZE = 64;
 //symbolTable -- pointer to symbolTable to initialize
 Vector *InitVector()
 {
-    Vector * symbolTable = malloc(sizeof(Vector));
-    if(symbolTable == NULL)
+    Vector * vector = malloc(sizeof(Vector));
+    if(vector == NULL)
         return 0;
     else
     {
-        symbolTable->result = 0;
-        symbolTable->size = 0;
-        symbolTable->capacity = DEFAULT_SYMBOL_TABLE_SIZE;
-        symbolTable->symbols = malloc(sizeof(void*) * symbolTable->capacity);
-        return symbolTable;
+        vector->result = 0;
+        vector->size = 0;
+        vector->capacity = DEFAULT_SYMBOL_TABLE_SIZE;
+        vector->items = malloc(sizeof(void*) * vector->capacity);
+        return vector;
     }
 } //Complete
 
@@ -30,14 +30,14 @@ Vector *InitVector()
 /*symbol -- Symbol to add
 symbolTable -- Vector to add symbol to
 */
-int AddToVector(Vector *symbolTable, void *symbol)
+int AddToVector(Vector *vector, void *symbol)
 {
     int success = 1; //Assume result
-    if(symbolTable->capacity == symbolTable->size) //Increase size if full
+    if(vector->capacity == vector->size) //Increase size if full
     {
-        success = DoubleVectorSize(symbolTable);
+        success = DoubleVectorSize(vector);
     }
-    symbolTable->symbols[symbolTable->size++] = symbol;
+    vector->items[vector->size++] = symbol;
     return success;
 } //Complete
 
@@ -45,7 +45,7 @@ int AddToVector(Vector *symbolTable, void *symbol)
 symbolTable -- The symbol table to free*/
 void DestroyVector(Vector *symbolTable)
 {
-    free(symbolTable->symbols);
+    free(symbolTable->items);
 }//TODO Check for memory leaks
 
 /*
@@ -56,16 +56,16 @@ with the top being the last element
 If item is found, its index is set in the Vector->result parameter
 If item is not found, Vector->result is set to -1
  */
-void ItemExistsInVector(Vector *symbolTable, void *symbol)
+void ItemExistsInVector(Vector *vector, void *symbol)
 {
-    int vectorSize = symbolTable->size-1;
-    symbolTable->result = -1; //If not found, result is -1
+    int vectorSize = vector->size-1;
+    vector->result = -1; //If not found, result is -1
     while(vectorSize > 0)
     {
-        char* str1 = (char*) GetFromVector(symbolTable, vectorSize);
+        char* str1 = (char*) GetFromVector(vector, vectorSize);
         if(strcmp(str1, (char*)symbol) == 0)
         {
-            symbolTable->result = vectorSize;
+            vector->result = vectorSize;
             return;
         }
         else
@@ -75,15 +75,15 @@ void ItemExistsInVector(Vector *symbolTable, void *symbol)
 }
 
 
-void* GetFromVector(Vector *symbolTable, int index)
+void* GetFromVector(Vector *vector, int index)
 {
-    if (index < 0 || index > symbolTable->size)
+    if (index < 0 || index > vector->size)
     {
         return 0;
     }
     else
     {
-        return symbolTable->symbols[index];
+        return vector->items[index];
     }
 }//Should be complete
 
@@ -92,10 +92,10 @@ void* GetFromVector(Vector *symbolTable, int index)
 //This should not be called from outside this implementation.
 inline static int DoubleVectorSize(Vector *symbolTable)
 {
-    void **symbols = realloc(symbolTable->symbols, sizeof(void*) * symbolTable->capacity * 2);
+    void **symbols = realloc(symbolTable->items, sizeof(void*) * symbolTable->capacity * 2);
     if(symbols != NULL)
     {
-        symbolTable->symbols = symbols; //Assign realloc'd symbol table to new symbol table
+        symbolTable->items = symbols; //Assign realloc'd symbol table to new symbol table
         symbolTable->capacity *= 2; //Double symbol table size
         return 1;
     }
