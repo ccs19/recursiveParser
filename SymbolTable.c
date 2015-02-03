@@ -9,7 +9,11 @@ inline static int DoubleVectorSize(Vector *);
 //Constants
 const int DEFAULT_SYMBOL_TABLE_SIZE = 64;
 
-//symbolTable -- pointer to symbolTable to initialize
+/*
+    FUNCTION: InitVector
+    Allocates memory for a new vector
+    @return Pointer to initialized vector
+ */
 Vector *InitVector()
 {
     Vector * vector = malloc(sizeof(Vector));
@@ -23,52 +27,60 @@ Vector *InitVector()
         vector->items = malloc(sizeof(void*) * vector->capacity);
         return vector;
     }
-} //Complete
+}
 
 
 
-/*symbol -- Symbol to add
-symbolTable -- Vector to add symbol to
+/*  FUNCTION: AddToVector
+    Adds a symbol to vector. On success, 1 is returned
+    @param  symbol      -- Symbol to add
+    @param  symbolTable -- Vector to add symbol to
+    @return             -- 1 on success
 */
-int AddToVector(Vector *vector, void *symbol)
+int AddToVector(Vector *vector, void *item)
 {
     int success = 1; //Assume result
     if(vector->capacity == vector->size) //Increase size if full
     {
         success = DoubleVectorSize(vector);
     }
-    vector->items[vector->size++] = symbol;
+    vector->items[vector->size++] = item;
     return success;
-} //Complete
+}
 
-/*Frees memory alloc'd to symbol table
-symbolTable -- The symbol table to free*/
-void DestroyVector(Vector *symbolTable)
+/*  FUNCTION: DestroyVector
+    Frees memory alloc'd to symbol table
+    vector -- The symbol table to free*/
+void DestroyVector(Vector *vector)
 {
     int i;
-    for(i = symbolTable->size; i > 0; i--)
-    {
-        free(symbolTable->items[i]);
+    for(i = vector->size-1; i > 0; i--) {
+        free(vector->items[i]);
     }
-    free(symbolTable->items);
-}//TODO Check for memory leaks
+    free(vector->items);
+    free(vector);
+}
 
 /*
-Checks if a specific value is present in the symbol table
-For efficiency, in this program we scan from "top to bottom"
-with the top being the last element
+    FUNCTION: ItemExistsInVector
+    Checks if a specific value is present in the symbol table
+    For efficiency, in this program we scan from "top to bottom"
+    with the top being the last element
 
-If item is found, its index is set in the Vector->result parameter
-If item is not found, Vector->result is set to -1
+    If item is found, its index is set in the Vector->result parameter
+    If item is not found, Vector->result is set to -1
+
+    @param vector   --  The vector to examine
+    @param symbol   --  The symbol to look for
  */
-void ItemExistsInVector(Vector *vector, void *symbol)
+void ItemExistsInVector(Vector *vector, void *item)
 {
     int vectorSize = vector->size-1;
     vector->result = -1; //If not found, result is -1
     while(vectorSize > 0)
     {
         char* str1 = (char*) GetFromVector(vector, vectorSize);
-        if(strcmp(str1, (char*)symbol) == 0)
+        if(strcmp(str1, (char*)item) == 0)
         {
             vector->result = vectorSize;
             return;
@@ -76,10 +88,14 @@ void ItemExistsInVector(Vector *vector, void *symbol)
         else
             vectorSize--;
     }
-
 }
 
-
+/*FUNCTION: GetFromVector
+    Returns a pointer to an item from a vector based on an index
+    @param Vector to search
+    @param Index to look into
+    @return the item on success, 0 on failure
+ */
 void* GetFromVector(Vector *vector, int index)
 {
     if (index < 0 || index > vector->size)
@@ -93,8 +109,11 @@ void* GetFromVector(Vector *vector, int index)
 }//Should be complete
 
 
-//Symbol Table to double in size.
-//This should not be called from outside this implementation.
+/*FUNCTION: DoubleVectorSize
+    Doubles a vector's size.
+    @param Vector to double in size
+    @return 1 on success, 0 on failure
+ */
 inline static int DoubleVectorSize(Vector *vector)
 {
     void **symbols = realloc(vector->items, sizeof(void*) * vector->capacity * 2);
@@ -106,4 +125,4 @@ inline static int DoubleVectorSize(Vector *vector)
     }
     else
         return 0;
-}//Complete
+}

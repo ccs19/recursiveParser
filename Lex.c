@@ -1,3 +1,8 @@
+
+
+
+
+
 #include <stdio.h>
 #include <ctype.h>
 
@@ -17,22 +22,33 @@ int m_lineNumber = 1;       //Current line number
 int m_lookAhead = 0;
 int nextChar = 0;
 
-
-//DEBUG
-char* lastSymbol;
-
 //Constants
 const int MAX_SYMBOL_SIZE = 256;
 
 
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   main
+    Readies the symbol table and handles matching of begin and end
+    @param  argv[1]           -- The file to open
+    @return                   -- int
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int main(int argc, const char* argv[]) {
     if(!ReadySymbolTable()) //This should only fail if malloc fails
     {
         printf("Failed to initialize Vector. Exiting.\n");
+        return 0;
+    }
+    else if(argc != 2)
+    {
+        printf("Usage: ./%s <filename>\n", argv[1]);
+        return 0;
     }
     else if(!OpenFileStream(argv[1])) //We failed to open file
     {
         printf("Failed to open file.");
+        return 0;
     }
     else
     {
@@ -50,7 +66,13 @@ int main(int argc, const char* argv[]) {
     EmptyTable(symbolTable); //We're done! Good times were had by all!
     return 0;
 }
-/*===========================================================================*/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   ReadySymbolTable
+    Readies the symbol table and adds the first two entries
+    @param  port           -- The port number to bind the listen socket
+    @return                -- 0 if fails, 1 if success
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int ReadySymbolTable()
 {
     NewSymbolTable(symbolTable);
@@ -61,12 +83,13 @@ int ReadySymbolTable()
     }
     else
     {
-        char *begin = malloc(sizeof("begin\0"));
-        char *end = malloc(sizeof("end\0"));
-        char *dash = malloc(sizeof("-\0"));
-        begin = "begin\0";
-        end = "end\0";
-        dash = "-\0";
+        char *begin = malloc(sizeof(MAX_SYMBOL_SIZE));
+        char *end = malloc(sizeof(MAX_SYMBOL_SIZE));
+        char *dash = malloc(sizeof(MAX_SYMBOL_SIZE));
+        begin[0] = end[0] = dash[0] = '\0';
+        strcat(begin, "begin");
+        strcat(end, "end");
+        strcat(dash, "-");
 
         InsertSymbol(symbolTable, dash);
         InsertSymbol(symbolTable, begin);
@@ -75,7 +98,12 @@ int ReadySymbolTable()
     }
 }
 
-/*===========================================================================*/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   Lexan
+    Lexical analyzer. Returns a token type or an int corresponding to a char
+    @return                -- The token or char value
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 int Lexan()
 {
@@ -102,18 +130,11 @@ int Lexan()
         {
            ; //do nothing if space or tab
         }
-        else if(isdigit(nextChar)
-                //|| (nextChar == '-'      //If negative
-               // && (m_lookAhead != NUM   //And lookahead not a NUM
-               // &&  m_lookAhead != ID    //And lookahead not an ID
-                /*&&  m_lookAhead != ')'   //And lookahead not a close paren
-                &&  m_lookAhead != '('*///)) //And lookahead not a open paren
-                )
+        else if(isdigit(nextChar))
         {
             return FindDigit();
         }
-        else if(isalpha(nextChar) //|| //If character
-                /*m_lookAhead == '('*/)
+        else if(isalpha(nextChar))
         {
             return FindSymbol();
         }
@@ -123,7 +144,15 @@ int Lexan()
             return nextChar;
     }
 }
-/*===========================================================================*/
+
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   OpenFileStream
+    Opens the file stream
+    @param  fileName       -- The name of the file to open
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 int OpenFileStream(const char* fileName) //TODO add argument from argv
 {
@@ -133,9 +162,13 @@ int OpenFileStream(const char* fileName) //TODO add argument from argv
 
 
 
-/*===========================================================================*/
-
-
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   PrintSyntaxError
+    Accepts an ErrorMessage enumerated type and prints an error
+    @param  errorMessage   -- The enumerated ErrorMessage type to print
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void PrintSyntaxError(ErrorMessage errorMessage)
 {
     printf("\nLine %d contains error ",m_lineNumber);
@@ -177,14 +210,17 @@ void PrintSyntaxError(ErrorMessage errorMessage)
 }
 
 
-/*===========================================================================*/
-
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   FindSymbol
+    Extracts the entire symbol from input
+    @return                -- Returns ID, BEGIN, or END
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int FindSymbol()
 {
     int underScoreCount = 0;                        //Number of consecutive underscores
     int symbolSize = 0;                             //Size of symbol
     char *symbol = malloc(sizeof(MAX_SYMBOL_SIZE)); //Var to hold symbol
-    lastSymbol = symbol;
     symbol[symbolSize] = nextChar;
     while(isalpha(nextChar) || nextChar == '_' || isdigit(nextChar)) //
     {
@@ -218,7 +254,13 @@ int FindSymbol()
 }
 
 
-/*===========================================================================*/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   Match
+    Verifies the correct lookahead type
+    @param  type           -- The expected type
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 void Match(int type)
 {
@@ -235,7 +277,12 @@ void Match(int type)
 
 
 
-/*===========================================================================*/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   AssignStatement
+    Handles equals sign
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 
 void AssignStatement()
@@ -253,8 +300,12 @@ void AssignStatement()
 
 }
 
-/*===========================================================================*/
-
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   Term
+    Handles multiplication and division
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 void Term()
 {
@@ -266,7 +317,13 @@ void Term()
     }
 }
 
-/*===========================================================================*/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   Factor
+    Handles matching of ID, NUM, and parentheses
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
 
 void Factor()
 {
@@ -288,9 +345,12 @@ void Factor()
         PrintSyntaxError(MissingParen);
 }
 
-/*===========================================================================*/
-
-
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   Expression
+    Handles + and - operations
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void Expression()
 {
     Term();
@@ -303,26 +363,31 @@ void Expression()
 }
 
 
-/*===========================================================================*/
-
-
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   PrintSymbols
+    Prints the found symbols
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void PrintSymbols()
 {
     int i;
     printf("\n========================\nThis is a valid program!\n========================\n\n");
     printf("===============\nSymbol List\n===============");
-    for(i = symbolTable->size-1; i != 0; i--)
-        printf("\n%s ", TableLookupByIndex(symbolTable,i));
-
+    for(i = symbolTable->size-1; i > 0; i--) {
+        printf("\n%s  %d", TableLookupByIndex(symbolTable,i), i);
+    }
     fclose(m_file);
     printf("\n");
 }
 
 
-/*===========================================================================*/
-
-
-
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   FindDigit
+    Extracts the entire number
+    @return                -- NUM
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int FindDigit()
 {
     if(nextChar == '-')
@@ -336,8 +401,12 @@ int FindDigit()
 }
 
 
-/*===========================================================================*/
-
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   HandleEndLine
+    Gracefully handles end of line statements
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void HandleEndLine()
 {
     nextChar = fgetc(m_file);
