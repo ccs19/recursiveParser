@@ -79,7 +79,19 @@ int Lexan()
         {
             HandleEndLine();
         }
-
+        else if(nextChar == '~') //Handle comments
+        {
+            while(nextChar == '~') {
+                if (nextChar == '~')//NOM NOM comments
+                {                  //Eat line of comments
+                    while (nextChar != '\n') {
+                        nextChar = fgetc(m_file);
+                    }
+                    nextChar = fgetc(m_file);
+                    m_lineNumber++;
+                }
+            }
+        }
         else if(nextChar == ' ' || nextChar == '\t')
         {
            ; //do nothing if space or tab
@@ -326,7 +338,7 @@ void HandleEndLine()
 {
     nextChar = fgetc(m_file);
     while( nextChar == ' ' || nextChar == '\t' ) //ignore spaces and tabs
-        nextChar == fgetc(m_file);
+        nextChar = fgetc(m_file);
     if( nextChar == '\n' || nextChar == EOF)
         m_lineNumber++;
     else if( isalnum(nextChar) )
@@ -335,16 +347,3 @@ void HandleEndLine()
     }
 }
 
-void HandleComments()
-{
-    while(nextChar == '~') {
-        if (nextChar == '~')//NOM NOM comments
-        {                  //Eat line of comments
-            while (nextChar != '\n') {
-                nextChar = fgetc(m_file);
-            }
-            nextChar = fgetc(m_file);
-            m_lineNumber++;
-        }
-    }
-}
