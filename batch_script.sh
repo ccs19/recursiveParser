@@ -1,0 +1,17 @@
+printf "\n~~~~~~~~~~~~\nlegal1.txt\n~~~~~~~~~~~~\n"
+./parser legal1.txt
+printf "\n~~~~~~~~~~~~\nlegal2.txt\n~~~~~~~~~~~~\n"
+./parser legal2.txt
+printf "\n~~~~~~~~~~~~\nlegal3.txt\n~~~~~~~~~~~~\n"
+./parser legal3.txt
+printf "\n~~~~~~~~~~~~\nlegal4.txt\n~~~~~~~~~~~~\n"
+./parser legal4.txt
+printf "\n~~~~~~~~~~~~\nillegal1.txt\n~~~~~~~~~~~~\n"
+./parser illegal1.txt
+printf "\n~~~~~~~~~~~~\nillegal2.txt\n~~~~~~~~~~~~\n"
+./parser illegal2.txt
+printf "\n~~~~~~~~~~~~\nillegal3.txt\n~~~~~~~~~~~~\n"
+./parser illegal3.txt
+printf "\n~~~~~~~~~~~~\nillegal4.txt\n~~~~~~~~~~~~\n"
+./parser illegal4.txt
+printf "\n\n"

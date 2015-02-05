@@ -1,0 +1,5 @@
+begin;
+the=(quick/brown)*fox-(jumps)-ov-er-(11545)*(t-h-e*(lazy)+dog);
+fun  = thisisgreatfun*if*you-(like)*making-fake-expressions;
+asdf = 55*55;
+end.;

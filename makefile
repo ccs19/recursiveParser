@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -g -Wall
 OBJECTS = *.c
 TODELETE = *.o
-NAME = RecursiveDescent
+NAME = parser
 
 $(NAME) : $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o $(NAME)

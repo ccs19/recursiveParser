@@ -3,5 +3,5 @@ begin;
 x = 5 - 5;
 y = 123551/7777;
 z = ffdssa*huehuehue;
-abc=        asdf+ffffff+ffdssa;
+abc!=        asdf+ffffff+ffdssa+++;
 end.;

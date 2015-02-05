@@ -25,7 +25,7 @@ enum errmsg{
     UnterminatedComment,    //Comment not properly terminated
     SymbolBufferOverflow,   //If symbol length exceeds maximum symbol size
     SyntaxError,            //Generic syntax error
-    UnexpectedAssignment,   //Invalid assignment
+    ExpectedAssignment,   //Invalid assignment
     InvalidLineEnding       //If improperly terminated line
 };
 typedef enum errmsg ErrorMessage;

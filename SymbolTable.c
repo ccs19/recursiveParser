@@ -33,8 +33,8 @@ Vector *InitVector()
 
 /*  FUNCTION: AddToVector
     Adds a symbol to vector. On success, 1 is returned
-    @param  symbol      -- Symbol to add
-    @param  symbolTable -- Vector to add symbol to
+    @param  item        -- item to add
+    @param  vector      -- Vector to add item to
     @return             -- 1 on success
 */
 int AddToVector(Vector *vector, void *item)
@@ -49,8 +49,8 @@ int AddToVector(Vector *vector, void *item)
 }
 
 /*  FUNCTION: DestroyVector
-    Frees memory alloc'd to symbol table
-    vector -- The symbol table to free*/
+    Frees memory alloc'd to vector
+    vector -- The vector table to free*/
 void DestroyVector(Vector *vector)
 {
     int i;
@@ -63,7 +63,7 @@ void DestroyVector(Vector *vector)
 
 /*
     FUNCTION: ItemExistsInVector
-    Checks if a specific value is present in the symbol table
+    Checks if a specific item is present in the vector
     For efficiency, in this program we scan from "top to bottom"
     with the top being the last element
 
@@ -71,7 +71,7 @@ void DestroyVector(Vector *vector)
     If item is not found, Vector->result is set to -1
 
     @param vector   --  The vector to examine
-    @param symbol   --  The symbol to look for
+    @param item   --  The item to look for
  */
 void ItemExistsInVector(Vector *vector, void *item)
 {

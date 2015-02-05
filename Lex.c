@@ -195,8 +195,8 @@ void PrintSyntaxError(ErrorMessage errorMessage)
         case SyntaxError:
             printf("\'Syntax Error\'");
             break;
-        case UnexpectedAssignment:
-            printf("\'Unexpected Assignment\'");
+        case ExpectedAssignment:
+            printf("\'Expected Assignment Operator\'");
             break;
         case InvalidLineEnding:
             printf("\'Invalid Line Ending\'");
@@ -205,6 +205,7 @@ void PrintSyntaxError(ErrorMessage errorMessage)
             printf("\'Unknown Error\'");
             break;
     }
+    printf("\n");
     fflush(stdout);
     exit(1);
 }
@@ -236,6 +237,7 @@ int FindSymbol()
     IsSymbolInTable(symbolTable, symbol);
     if(underScoreCount != 0)            //Check for symbol ending in underscore
     {
+        free(symbol);
         PrintSyntaxError(IllegalIdentifier);
     }
     else if(symbolTable->result == NOT_IN_TABLE)
@@ -290,7 +292,7 @@ void AssignStatement()
     Match(ID);
     if(m_lookAhead != '=')
     {
-        PrintSyntaxError(UnexpectedAssignment);
+        PrintSyntaxError(ExpectedAssignment);
     }
     else
     {
@@ -342,7 +344,7 @@ void Factor()
         Match(')');
     }
     else
-        PrintSyntaxError(MissingParen);
+        PrintSyntaxError(SyntaxError);
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -371,11 +373,11 @@ void Expression()
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void PrintSymbols()
 {
-    int i;
+    int i, j = 1;
     printf("\n========================\nThis is a valid program!\n========================\n\n");
     printf("===============\nSymbol List\n===============");
-    for(i = symbolTable->size-1; i > 0; i--) {
-        printf("\n%s  %d", TableLookupByIndex(symbolTable,i), i);
+    for(i = symbolTable->size-1; i > 2; i--) {
+        printf("\n%4d  %s  ", j++, TableLookupByIndex(symbolTable,i));
     }
     fclose(m_file);
     printf("\n");
@@ -390,8 +392,6 @@ void PrintSymbols()
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int FindDigit()
 {
-    if(nextChar == '-')
-        nextChar =  fgetc(m_file); //To ensure negative numbers are accounted for
     while(isdigit(nextChar)) //Tested good! :D
     {
         nextChar = fgetc(m_file);
