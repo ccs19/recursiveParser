@@ -5,14 +5,11 @@
 
 #include <stdio.h>
 #include <ctype.h>
-
 #include <malloc.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-
 #include "Lex.h"
-#include "SymbolTable.h"
 
 
 //Globals
