@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "Lex.h"
+#include "SymbolTable.h"
 
 
 //Globals
@@ -21,13 +22,15 @@ int nextChar = 0;
 
 //Constants
 const int MAX_SYMBOL_SIZE = 256;
+
+//Constant operator strings
 #define OPERATOR_SIZE 2
-char TIMES_SYMBOL[OPERATOR_SIZE] = "*\0";
-char DIVIDES_SYMBOL[OPERATOR_SIZE] = "/\0";
-char PLUS_SYMBOL[OPERATOR_SIZE] = "+\0";
-char MINUS_SYMBOL[OPERATOR_SIZE] = "-\0";
-char EQUALS_SYMBOL[OPERATOR_SIZE] = "=\0";
-char END_OF_LINE_SYMBOL[OPERATOR_SIZE] = ";\0";
+const char TIMES_SYMBOL[OPERATOR_SIZE] = "*\0";
+const char DIVIDES_SYMBOL[OPERATOR_SIZE] = "/\0";
+const char PLUS_SYMBOL[OPERATOR_SIZE] = "+\0";
+const char MINUS_SYMBOL[OPERATOR_SIZE] = "-\0";
+const char EQUALS_SYMBOL[OPERATOR_SIZE] = "=\0";
+const char END_OF_LINE_SYMBOL[OPERATOR_SIZE] = ";\0";
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -244,17 +247,17 @@ int FindSymbol()
         free(symbol);
         PrintSyntaxError(IllegalIdentifier);
     }
-    else if(symbolTable->result == NOT_IN_TABLE)
-    {
-        InsertSymbol(symbolTable, symbol);
-    }
-    else if(symbolTable->result == BEGIN_INDEX)
+    if(symbolTable->result == BEGIN_INDEX)
     {
         return BEGIN;
     }
     else if(symbolTable->result == END_INDEX)
     {
         return END;
+    }
+    else
+    {
+        InsertSymbol(symbolTable, symbol); //Always insert symbols, even duplicates for this project
     }
     return ID;
 }
@@ -294,7 +297,7 @@ void Match(int type)
 void AssignStatement()
 {
     Match(ID);
-   // PrintCurrentSymbol();
+
     if(m_lookAhead != EQUALS)
     {
         PrintSyntaxError(ExpectedAssignment);
@@ -302,7 +305,9 @@ void AssignStatement()
     else
     {
         if(m_lookAhead == EQUALS)
+        {
             InsertSymbol(symbolTable, EQUALS_SYMBOL);
+        }
         Match(m_lookAhead);
         Expression();
     }
@@ -391,8 +396,8 @@ void PrintSymbols()
     int i, j = 1;
     printf("\n========================\nThis is a valid program!\n========================\n\n");
     printf("===============\nSymbol List\n===============");
-    for(i = symbolTable->size-1; i > 2; i--) {
-        printf("\n%4d  %s  ", j++, TableLookupByIndex(symbolTable,i));
+    for(i = START_INDEX; i < symbolTable->size; i++) {
+        i = NextEquation();
     }
     fclose(m_file);
     printf("\n");
@@ -401,7 +406,7 @@ void PrintSymbols()
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*  FUNCTION:   FindDigit
-    Extracts the entire number
+    Extracts the entire number and adds it to the symbol table
     @return                -- NUM
  */
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -409,16 +414,14 @@ int FindDigit()
 {
     char *theSymbol = malloc(sizeof(char) * MAX_SYMBOL_SIZE);
     int symbolSize = 0;
-    //theSymbol[symbolSize++] = nextChar;
-    while(isdigit(nextChar)) //Tested good! :D
+    while(isdigit(nextChar))
     {
-        theSymbol[symbolSize++] = nextChar;
+        theSymbol[symbolSize++] = nextChar; //Add character to symbol and increment counter
         nextChar = fgetc(m_file);
     }
-    ungetc(nextChar, m_file);
+    ungetc(nextChar, m_file);               //Put non-numeric char back
     theSymbol[symbolSize] = '\0';
-    printf("SYm %s\n", theSymbol);
-    InsertSymbol(symbolTable, theSymbol);
+    InsertSymbol(symbolTable, theSymbol); //Add number to table
     return NUM;
 }
 
@@ -439,8 +442,17 @@ void HandleEndLine()
 }
 
 
-void PrintCurrentSymbol()
+int NextEquation(int equationStart)
 {
-    printf("%s\n", m_lookAhead);
-    fflush(stdout);
+    int nextEquationStart = 0;
+    int equationEnd = equationStart;
+    char* operand = TableLookupByIndex(symbolTable, equationEnd);
+
+    while(strcmp(operand, END_OF_LINE_SYMBOL)) //Find end of equation
+    {
+        equationStart++;
+        operand = TableLookupByIndex(symbolTable, equationEnd);
+    }
+
+
 }
