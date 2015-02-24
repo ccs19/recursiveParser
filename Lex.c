@@ -21,7 +21,13 @@ int nextChar = 0;
 
 //Constants
 const int MAX_SYMBOL_SIZE = 256;
-
+#define OPERATOR_SIZE 2
+char TIMES_SYMBOL[OPERATOR_SIZE] = "*\0";
+char DIVIDES_SYMBOL[OPERATOR_SIZE] = "/\0";
+char PLUS_SYMBOL[OPERATOR_SIZE] = "+\0";
+char MINUS_SYMBOL[OPERATOR_SIZE] = "-\0";
+char EQUALS_SYMBOL[OPERATOR_SIZE] = "=\0";
+char END_OF_LINE_SYMBOL[OPERATOR_SIZE] = ";\0";
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -110,6 +116,7 @@ int Lexan()
         if(nextChar == SEMICOLON)
         {
             HandleEndLine();
+            InsertSymbol(symbolTable, END_OF_LINE_SYMBOL);
         }
         else if(nextChar == TILDA) //Handle comments
         {
@@ -294,13 +301,11 @@ void AssignStatement()
     }
     else
     {
-     //   PrintCurrentSymbol();
+        if(m_lookAhead == EQUALS)
+            InsertSymbol(symbolTable, EQUALS_SYMBOL);
         Match(m_lookAhead);
-        //PrintCurrentSymbol();
         Expression();
-       // PrintCurrentSymbol();
     }
-    //PrintCurrentSymbol();
 
 }
 
@@ -316,6 +321,10 @@ void Term()
     Factor();
     while(m_lookAhead == TIMES || m_lookAhead == DIVIDES)
     {
+        if(m_lookAhead == TIMES)
+            InsertSymbol(symbolTable, TIMES_SYMBOL);
+        else if(m_lookAhead == DIVIDES)
+            InsertSymbol(symbolTable, DIVIDES_SYMBOL);
         Match(m_lookAhead);
         Factor();
     }
@@ -360,6 +369,10 @@ void Expression()
     Term();
     while(m_lookAhead == PLUS || m_lookAhead == MINUS)
     {
+        if(m_lookAhead == PLUS)
+            InsertSymbol(symbolTable, PLUS_SYMBOL);
+        else if(m_lookAhead == MINUS)
+            InsertSymbol(symbolTable, MINUS_SYMBOL);
         Match(m_lookAhead);
         Term();
     }
@@ -395,11 +408,17 @@ void PrintSymbols()
 int FindDigit()
 {
     char *theSymbol = malloc(sizeof(char) * MAX_SYMBOL_SIZE);
+    int symbolSize = 0;
+    //theSymbol[symbolSize++] = nextChar;
     while(isdigit(nextChar)) //Tested good! :D
     {
+        theSymbol[symbolSize++] = nextChar;
         nextChar = fgetc(m_file);
     }
     ungetc(nextChar, m_file);
+    theSymbol[symbolSize] = '\0';
+    printf("SYm %s\n", theSymbol);
+    InsertSymbol(symbolTable, theSymbol);
     return NUM;
 }
 
