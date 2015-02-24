@@ -218,11 +218,11 @@ int FindSymbol()
 {
     int underScoreCount = 0;                        //Number of consecutive underscores
     int symbolSize = 0;                             //Size of symbol
-    char *symbol = malloc(sizeof(MAX_SYMBOL_SIZE)); //Var to hold symbol
+    char *symbol = malloc(sizeof(char) * MAX_SYMBOL_SIZE); //Var to hold symbol
     symbol[symbolSize] = nextChar;
     while(isalpha(nextChar) || nextChar == UNDERSCORE || isdigit(nextChar)) //
     {
-        if(nextChar == '_') underScoreCount++;
+        if(nextChar == UNDERSCORE) underScoreCount++;
         else underScoreCount = 0;
         if(underScoreCount > 1) PrintSyntaxError(IllegalIdentifier); //If consecutive underscores, invalid
         if(symbolSize == MAX_SYMBOL_SIZE-1) PrintSyntaxError(SymbolBufferOverflow); //If no room for null char
@@ -394,6 +394,7 @@ void PrintSymbols()
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int FindDigit()
 {
+    char *theSymbol = malloc(sizeof(char) * MAX_SYMBOL_SIZE);
     while(isdigit(nextChar)) //Tested good! :D
     {
         nextChar = fgetc(m_file);
