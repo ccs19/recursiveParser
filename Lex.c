@@ -44,7 +44,7 @@ int main(int argc, const char* argv[]) {
     }
     else if(!OpenFileStream(argv[1])) //We failed to open file
     {
-        printf("Failed to open file.");
+        printf("Failed to open file %s\n", argv[1]);
         return 0;
     }
     else
@@ -66,7 +66,7 @@ int main(int argc, const char* argv[]) {
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*  FUNCTION:   ReadySymbolTable
     Readies the symbol table and adds the first two entries
-    @param  port           -- The port number to bind the listen socket
+
     @return                -- 0 if fails, 1 if success
  */
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -107,23 +107,23 @@ int Lexan()
     for(;;) //while( 1 )
     {
         nextChar = fgetc(m_file);
-        if(nextChar == ';')
+        if(nextChar == SEMICOLON)
         {
             HandleEndLine();
         }
-        else if(nextChar == '~') //Handle comments
+        else if(nextChar == TILDA) //Handle comments
         {
-            while(nextChar == '~') {
-                if (nextChar == '~')//NOM NOM comments
+            while(nextChar == TILDA) {
+                if (nextChar == TILDA)//NOM NOM comments
                 {                  //Eat line of comments
-                    while (nextChar != '\n') {
+                    while (nextChar != NEWLINE) {
                         nextChar = fgetc(m_file);
                     }
                     m_lineNumber++;
                 }
             }
         }
-        else if(nextChar == ' ' || nextChar == '\t')
+        else if(nextChar == SPACE || nextChar == TAB)
         {
            ; //do nothing if space or tab
         }
@@ -220,7 +220,7 @@ int FindSymbol()
     int symbolSize = 0;                             //Size of symbol
     char *symbol = malloc(sizeof(MAX_SYMBOL_SIZE)); //Var to hold symbol
     symbol[symbolSize] = nextChar;
-    while(isalpha(nextChar) || nextChar == '_' || isdigit(nextChar)) //
+    while(isalpha(nextChar) || nextChar == UNDERSCORE || isdigit(nextChar)) //
     {
         if(nextChar == '_') underScoreCount++;
         else underScoreCount = 0;
@@ -239,7 +239,7 @@ int FindSymbol()
     }
     else if(symbolTable->result == NOT_IN_TABLE)
     {
-        InsertSymbol(symbolTable, symbol); //TODO Fix memory leak
+        InsertSymbol(symbolTable, symbol);
     }
     else if(symbolTable->result == BEGIN_INDEX)
     {
@@ -287,15 +287,20 @@ void Match(int type)
 void AssignStatement()
 {
     Match(ID);
-    if(m_lookAhead != '=')
+   // PrintCurrentSymbol();
+    if(m_lookAhead != EQUALS)
     {
         PrintSyntaxError(ExpectedAssignment);
     }
     else
     {
+     //   PrintCurrentSymbol();
         Match(m_lookAhead);
+        //PrintCurrentSymbol();
         Expression();
+       // PrintCurrentSymbol();
     }
+    //PrintCurrentSymbol();
 
 }
 
@@ -309,7 +314,7 @@ void AssignStatement()
 void Term()
 {
     Factor();
-    while(m_lookAhead == '*' || m_lookAhead == '/')
+    while(m_lookAhead == TIMES || m_lookAhead == DIVIDES)
     {
         Match(m_lookAhead);
         Factor();
@@ -334,11 +339,11 @@ void Factor()
     {
         Match(NUM);
     }
-    else if(m_lookAhead == '(')
+    else if(m_lookAhead == OPEN_PAREN)
     {
-        Match('(');
+        Match(OPEN_PAREN);
         Expression();
-        Match(')');
+        Match(CLOSE_PAREN);
     }
     else
         PrintSyntaxError(SyntaxError);
@@ -353,7 +358,7 @@ void Factor()
 void Expression()
 {
     Term();
-    while(m_lookAhead == '+' || m_lookAhead == '-')
+    while(m_lookAhead == PLUS || m_lookAhead == MINUS)
     {
         Match(m_lookAhead);
         Term();
@@ -407,8 +412,15 @@ int FindDigit()
 void HandleEndLine()
 {
     nextChar = fgetc(m_file);
-    while( nextChar == ' ' || nextChar == '\t' ) //ignore spaces and tabs
+    while( nextChar == SPACE || nextChar == TAB ) //ignore spaces and tabs
         nextChar = fgetc(m_file);
-    if( nextChar == '\n' || nextChar == EOF)
+    if( nextChar == NEWLINE || nextChar == EOF)
         m_lineNumber++;
+}
+
+
+void PrintCurrentSymbol()
+{
+    printf("%s\n", m_lookAhead);
+    fflush(stdout);
 }

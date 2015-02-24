@@ -13,6 +13,25 @@
 #define BEGIN 400
 #define END 401
 #define DONE 402
+
+//Operators
+#define TIMES '*'
+#define DIVIDES '/'
+#define OPEN_PAREN '('
+#define CLOSE_PAREN ')'
+#define PLUS '+'
+#define MINUS '-'
+#define SPACE ' '
+#define EQUALS '='
+
+//Other
+#define UNDERSCORE '_'
+#define NEWLINE '\n'
+#define TAB '\t'
+#define TILDA '~'
+#define SEMICOLON ';'
+
+//Array indices for table
 #define BEGIN_INDEX 1
 #define END_INDEX 2
 #define NOT_IN_TABLE -1
@@ -163,5 +182,7 @@ void PrintSymbols();
  */
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void HandleEndLine();
+
+void PrintCurrentSymbol();
 
 #endif

@@ -30,7 +30,6 @@ Vector *InitVector()
 }
 
 
-
 /*  FUNCTION: AddToVector
     Adds a symbol to vector. On success, 1 is returned
     @param  item        -- item to add

@@ -1,5 +1,5 @@
 begin;
 the=(quick/brown)*fox-(jumps)-ov-er-(11545)*(t-h-e*(lazy)+dog);
-fun  = thisisgreatfun*if*you-(like)*making-fake-expressions;
+fun  = thisisgre__atfun*if*you-(like)*making-fake-expressions;
 asdf = 55*55+asdf9162918sf698615896986s8f9d6s89df68s9d6f98s6df89s6df896s89d6f98s6df896s89df689s6df896s89d6f98s69f86s98f6s986f9s6d86f8912635198gfasdfaiosef90q6230f6asdfofdisyfajlxkcjvaosidjlkhkljhjkhkjahkxcjfhaxkcvjahskcvjhajcskvhajskcvhkajshvjkshavjkhajkhvjkhajksvhkjshdvhjhlkjhljkh;
 end.;
