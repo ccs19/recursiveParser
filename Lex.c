@@ -396,8 +396,9 @@ void PrintSymbols()
     int i, j = 1;
     printf("\n========================\nThis is a valid program!\n========================\n\n");
     printf("===============\nSymbol List\n===============");
-    for(i = START_INDEX; i < symbolTable->size; i++) {
-        i = NextEquation();
+    for(i = START_INDEX; i < symbolTable->size; i++)
+    {
+        i = NextEquation(i);
     }
     fclose(m_file);
     printf("\n");
@@ -442,17 +443,67 @@ void HandleEndLine()
 }
 
 
-int NextEquation(int equationStart)
-{
-    int nextEquationStart = 0;
-    int equationEnd = equationStart;
-    char* operand = TableLookupByIndex(symbolTable, equationEnd);
+/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
-    while(strcmp(operand, END_OF_LINE_SYMBOL)) //Find end of equation
+int NextEquation(int equationStart) {
+    int equationEnd = equationStart;
+    char *operand = TableLookupByIndex(symbolTable, equationEnd);
+
+    while (strcmp(operand, END_OF_LINE_SYMBOL)) //Find end of current equation
     {
-        equationStart++;
+        equationEnd++;
         operand = TableLookupByIndex(symbolTable, equationEnd);
     }
+
+    GetInstructions(equationEnd);
+
+    return ++equationEnd; //Increment to next symbol before returning
+}
+
+
+
+
+
+
+
+void GetInstructions(int instructionStart)
+{
+    int currentRegister = 0;
+    char* currentItem = TableLookupByIndex(symbolTable, --instructionStart);
+    char* operator;
+    while(strcmp(currentItem, EQUALS_SYMBOL) != 0)
+    {
+        printf("R%d = %s\n", currentRegister++, currentItem);
+        currentItem = TableLookupByIndex(symbolTable, --instructionStart);
+        if(IsOperator(currentItem, operator) == 1)
+        {
+
+
+        }
+    }
+}
+
+int IsOperator(char* operand, char* operatorFound)
+{
+    if(strcmp(operand, PLUS_SYMBOL) == 0)
+    {
+        operatorFound = PLUS_SYMBOL;
+    }
+    else if(strcmp(operand, MINUS_SYMBOL) == 0)
+    {
+        operatorFound = MINUS_SYMBOL;
+    }
+    else if(strcmp(operand, TIMES_SYMBOL) == 0)
+    {
+        operatorFound = TIMES_SYMBOL;
+    }
+    else if(strcmp(operand, DIVIDES_SYMBOL) == 0)
+    {
+        operatorFound = DIVIDES_SYMBOL;
+    }
+    else
+        return 0;
 
 
 }

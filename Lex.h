@@ -186,4 +186,9 @@ void HandleEndLine();
 
 
 int NextEquation(int);
+
+
+void GetInstructions(int);
+
+int IsOperator(char*, char*);
 #endif
