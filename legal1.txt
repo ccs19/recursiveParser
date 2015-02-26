@@ -1,7 +1,6 @@
 ~~~~~comment comment comment 5
 begin;
-x = 5 - 5;
-y = 123551/7777;
-z = ffdssa*huehuehue;
-abc=        asdf+fff_fff+ffdssa;
+x = 1+1;
+y = 6 * 6 + 3;
+z = 124 * asdfasdfasdf;
 end.;

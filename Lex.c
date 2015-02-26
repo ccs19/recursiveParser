@@ -16,6 +16,7 @@
 //Globals
 FILE *m_file;               //File pointer
 Vector * symbolTable;       //Symbol Table
+Vector * postfixResult;
 int m_lineNumber = 1;       //Current line number
 int m_lookAhead = 0;
 int nextChar = 0;
@@ -36,6 +37,12 @@ const char END_OF_LINE_SYMBOL[OPERATOR_SIZE] = ";\0";
 //Next operand and register counter
 RegisterCounter rc;
 char nextOperand[MAX_SYMBOL_SIZE];
+char assignmentTo[MAX_SYMBOL_SIZE];
+int assignmentOperator = 0;
+int expCount = 0;
+
+
+void AssignResultAndPrintPostfix();
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*  FUNCTION:   main
@@ -64,9 +71,12 @@ int main(int argc, const char* argv[]) {
     {
         InitRegisterStruct();
         m_lookAhead = Lexan();
+        assignmentOperator = 1;
         Match(BEGIN);
+        assignmentOperator = 0;
         while(m_lookAhead != END)
         {
+            rc.registerCount = 0;
             AssignStatement();
         }
         Match(END);
@@ -86,7 +96,6 @@ int main(int argc, const char* argv[]) {
 int ReadySymbolTable()
 {
     NewSymbolTable(symbolTable);
-    //symbolTable = InitVector();
     if(symbolTable == NULL) // Failed to allocate memory if this fails
     {
         return 0;
@@ -104,6 +113,10 @@ int ReadySymbolTable()
         InsertSymbol(symbolTable, dash);
         InsertSymbol(symbolTable, begin);
         InsertSymbol(symbolTable, end);
+
+        //TODO Clean this up
+        NewSymbolTable(postfixResult);
+
         return 1;
     }
 }
@@ -122,8 +135,8 @@ int Lexan()
         nextChar = fgetc(m_file);
         if(nextChar == SEMICOLON)
         {
+            if(expCount = 1) assignmentOperator = 1;
             HandleEndLine();
-            rc.registerCount = 0;
         }
         else if(nextChar == TILDA) //Handle comments
         {
@@ -258,7 +271,13 @@ int FindSymbol()
     {
         return END;
     }
-    PrintNextOperand(symbol);
+    if(assignmentOperator == 0) {
+        PrintNextOperand(symbol);
+    }
+    else if(assignmentOperator == 1)
+    {
+        memcpy(assignmentTo, symbol, sizeof(symbol));
+    }
     return ID;
 }
 
@@ -322,10 +341,13 @@ void AssignStatement()
     }
     else
     {
+        assignmentOperator = 1;
         Match(m_lookAhead);
+        assignmentOperator = 0;
+        expCount = 1;
         Expression();
     }
-
+    AssignResultAndPrintPostfix();
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -474,18 +496,38 @@ void PrintNextOperand(const char* operand)
 {
     sprintf(nextOperand, "R%d = %s\n", rc.registerCount++, operand);
     printf("%s",nextOperand);
+    char *operandToAdd = malloc(sizeof(char) * MAX_SYMBOL_SIZE);
+    memcpy(operandToAdd, operand, sizeof(operand));
+    InsertSymbol(postfixResult, operandToAdd);
 }
 
 void DoArithmetic(const char* operator)
 {
     char registerOperation[MAX_REGISTER_SIZE];
     registerOperation[0] = '/0';
-    sprintf(registerOperation, "R%d = R%d %s R%d\n", rc.registerCount--, --rc.registerCount, operator, --rc.registerCount);
+    sprintf(registerOperation, "R%d = R%d %s R%d\n", rc.registerCount - 2, rc.registerCount - 2, operator, rc.registerCount - 1);
     printf("%s", registerOperation);
+    rc.registerCount--;
+    char *operatorToAdd = malloc(sizeof(char) * OPERATOR_SIZE);
+    memcpy(operatorToAdd, operator, sizeof(operator));
+    InsertSymbol(postfixResult, operatorToAdd);
 }
 
 void InitRegisterStruct()
 {
     rc.assignTo[0] = '\0';
     rc.registerCount = 0;
+}
+
+void AssignResultAndPrintPostfix()
+{
+    printf("%s = R0\n", assignmentTo);
+    int i= 0;
+    for(i = 0; i < postfixResult->size-1; i++)
+    {
+        printf("%s,", TableLookupByIndex(postfixResult, i));
+    }
+    printf("%s\n", TableLookupByIndex(postfixResult, i));
+    EmptyTable(postfixResult);
+    NewSymbolTable(postfixResult);
 }
