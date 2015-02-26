@@ -3,5 +3,5 @@ project(recusriveParser)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 
-set(SOURCE_FILES Lex.c SymbolTable.c)
+set(SOURCE_FILES Lex.c SymbolTable.c Parser.c)
 add_executable(recusriveParser ${SOURCE_FILES})

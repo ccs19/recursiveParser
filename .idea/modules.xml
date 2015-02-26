@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/recursiveParser.iml" filepath="$PROJECT_DIR$/.idea/recursiveParser.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/recusriveParser.iml" filepath="$PROJECT_DIR$/.idea/recusriveParser.iml" />
     </modules>
   </component>
 </project>

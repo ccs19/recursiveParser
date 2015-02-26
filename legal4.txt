@@ -1,3 +1,4 @@
-begin;
-the=(quick/brown)*fox-(jumps)-ov-er-(11545)*(t-h-e*(lazy)+dog);
-end.;
+begin
+theasdfasdfasdfasdfasdf=(quick/brown)*fox-(jumps)-ov-er-(11545)*(t-h-e*(lazy)+dog);
+result = tyuio / as9df876 * (asdf_asdfasdfasdf - jjjljlj);
+end.
