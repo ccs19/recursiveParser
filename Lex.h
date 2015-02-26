@@ -184,11 +184,7 @@ void PrintSymbols();
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void HandleEndLine();
 
+void PrintNextOperand(const char*);
 
-int NextEquation(int);
-
-
-void GetInstructions(int);
-
-int IsOperator(char*, char*);
+void DoArithmetic(const char*);
 #endif

@@ -21,7 +21,8 @@ int m_lookAhead = 0;
 int nextChar = 0;
 
 //Constants
-const int MAX_SYMBOL_SIZE = 256;
+#define MAX_SYMBOL_SIZE 256
+#define MAX_REGISTER_SIZE 512
 
 //Constant operator strings
 #define OPERATOR_SIZE 2
@@ -32,6 +33,15 @@ const char MINUS_SYMBOL[OPERATOR_SIZE] = "-\0";
 const char EQUALS_SYMBOL[OPERATOR_SIZE] = "=\0";
 const char END_OF_LINE_SYMBOL[OPERATOR_SIZE] = ";\0";
 
+
+
+//Next operand and register counter
+int registerCount = 0;
+
+void myMethod();
+
+char nextOperand[MAX_SYMBOL_SIZE];
+char assignTo[MAX_SYMBOL_SIZE];
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*  FUNCTION:   main
@@ -58,24 +68,28 @@ int main(int argc, const char* argv[]) {
     }
     else
     {
-        m_lookAhead = Lexan();
-        Match(BEGIN);
-        while(m_lookAhead != END)
-        {
-            AssignStatement();
-        }
-        Match(END);
-        Match('.');
+        myMethod();
     }
 
     PrintSymbols();
     EmptyTable(symbolTable); //We're done! Good times were had by all!
     return 0;
 }
+
+void myMethod() {
+    m_lookAhead;
+    m_lookAhead = Lexan();
+    Match(BEGIN);
+    while(m_lookAhead != END)
+        {
+            AssignStatement();
+        }
+    Match(END);
+    Match('.');
+}
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*  FUNCTION:   ReadySymbolTable
     Readies the symbol table and adds the first two entries
-
     @return                -- 0 if fails, 1 if success
  */
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -119,7 +133,6 @@ int Lexan()
         if(nextChar == SEMICOLON)
         {
             HandleEndLine();
-            InsertSymbol(symbolTable, END_OF_LINE_SYMBOL);
         }
         else if(nextChar == TILDA) //Handle comments
         {
@@ -135,7 +148,7 @@ int Lexan()
         }
         else if(nextChar == SPACE || nextChar == TAB)
         {
-           ; //do nothing if space or tab
+            ; //do nothing if space or tab
         }
         else if(isdigit(nextChar))
         {
@@ -228,11 +241,11 @@ int FindSymbol()
 {
     int underScoreCount = 0;                        //Number of consecutive underscores
     int symbolSize = 0;                             //Size of symbol
-    char *symbol = malloc(sizeof(char) * MAX_SYMBOL_SIZE); //Var to hold symbol
+    char *symbol = malloc(sizeof(MAX_SYMBOL_SIZE)); //Var to hold symbol
     symbol[symbolSize] = nextChar;
     while(isalpha(nextChar) || nextChar == UNDERSCORE || isdigit(nextChar)) //
     {
-        if(nextChar == UNDERSCORE) underScoreCount++;
+        if(nextChar == '_') underScoreCount++;
         else underScoreCount = 0;
         if(underScoreCount > 1) PrintSyntaxError(IllegalIdentifier); //If consecutive underscores, invalid
         if(symbolSize == MAX_SYMBOL_SIZE-1) PrintSyntaxError(SymbolBufferOverflow); //If no room for null char
@@ -247,7 +260,11 @@ int FindSymbol()
         free(symbol);
         PrintSyntaxError(IllegalIdentifier);
     }
-    if(symbolTable->result == BEGIN_INDEX)
+    else if(symbolTable->result == NOT_IN_TABLE)
+    {
+        InsertSymbol(symbolTable, symbol);
+    }
+    else if(symbolTable->result == BEGIN_INDEX)
     {
         return BEGIN;
     }
@@ -255,10 +272,7 @@ int FindSymbol()
     {
         return END;
     }
-    else
-    {
-        InsertSymbol(symbolTable, symbol); //Always insert symbols, even duplicates for this project
-    }
+    PrintNextOperand(symbol);
     return ID;
 }
 
@@ -297,20 +311,20 @@ void Match(int type)
 void AssignStatement()
 {
     Match(ID);
-
+    // PrintCurrentSymbol();
     if(m_lookAhead != EQUALS)
     {
         PrintSyntaxError(ExpectedAssignment);
     }
     else
     {
-        if(m_lookAhead == EQUALS)
-        {
-            InsertSymbol(symbolTable, EQUALS_SYMBOL);
-        }
+        //   PrintCurrentSymbol();
         Match(m_lookAhead);
+        //PrintCurrentSymbol();
         Expression();
+        // PrintCurrentSymbol();
     }
+    //PrintCurrentSymbol();
 
 }
 
@@ -326,12 +340,18 @@ void Term()
     Factor();
     while(m_lookAhead == TIMES || m_lookAhead == DIVIDES)
     {
-        if(m_lookAhead == TIMES)
-            InsertSymbol(symbolTable, TIMES_SYMBOL);
-        else if(m_lookAhead == DIVIDES)
-            InsertSymbol(symbolTable, DIVIDES_SYMBOL);
+        int operator = m_lookAhead;
         Match(m_lookAhead);
         Factor();
+        if(operator == TIMES)
+        {
+            DoArithmetic(TIMES_SYMBOL);
+        }
+        else if(operator == DIVIDES)
+        {
+            DoArithmetic(DIVIDES_SYMBOL);
+        }
+
     }
 }
 
@@ -374,10 +394,6 @@ void Expression()
     Term();
     while(m_lookAhead == PLUS || m_lookAhead == MINUS)
     {
-        if(m_lookAhead == PLUS)
-            InsertSymbol(symbolTable, PLUS_SYMBOL);
-        else if(m_lookAhead == MINUS)
-            InsertSymbol(symbolTable, MINUS_SYMBOL);
         Match(m_lookAhead);
         Term();
     }
@@ -396,9 +412,8 @@ void PrintSymbols()
     int i, j = 1;
     printf("\n========================\nThis is a valid program!\n========================\n\n");
     printf("===============\nSymbol List\n===============");
-    for(i = START_INDEX; i < symbolTable->size; i++)
-    {
-        i = NextEquation(i);
+    for(i = symbolTable->size-1; i > 2; i--) {
+        printf("\n%4d  %s  ", j++, TableLookupByIndex(symbolTable,i));
     }
     fclose(m_file);
     printf("\n");
@@ -407,22 +422,17 @@ void PrintSymbols()
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*  FUNCTION:   FindDigit
-    Extracts the entire number and adds it to the symbol table
+    Extracts the entire number
     @return                -- NUM
  */
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int FindDigit()
 {
-    char *theSymbol = malloc(sizeof(char) * MAX_SYMBOL_SIZE);
-    int symbolSize = 0;
-    while(isdigit(nextChar))
+    while(isdigit(nextChar)) //Tested good! :D
     {
-        theSymbol[symbolSize++] = nextChar; //Add character to symbol and increment counter
         nextChar = fgetc(m_file);
     }
-    ungetc(nextChar, m_file);               //Put non-numeric char back
-    theSymbol[symbolSize] = '\0';
-    InsertSymbol(symbolTable, theSymbol); //Add number to table
+    ungetc(nextChar, m_file);
     return NUM;
 }
 
@@ -443,67 +453,16 @@ void HandleEndLine()
 }
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-int NextEquation(int equationStart) {
-    int equationEnd = equationStart;
-    char *operand = TableLookupByIndex(symbolTable, equationEnd);
-
-    while (strcmp(operand, END_OF_LINE_SYMBOL)) //Find end of current equation
-    {
-        equationEnd++;
-        operand = TableLookupByIndex(symbolTable, equationEnd);
-    }
-
-    GetInstructions(equationEnd);
-
-    return ++equationEnd; //Increment to next symbol before returning
+void PrintNextOperand(const char* operand)
+{
+    sprintf(nextOperand, "R%d = %s\n", registerCount++, operand);
+    printf("%s",nextOperand);
 }
 
-
-
-
-
-
-
-void GetInstructions(int instructionStart)
+void DoArithmetic(const char* operator)
 {
-    int currentRegister = 0;
-    char* currentItem = TableLookupByIndex(symbolTable, --instructionStart);
-    char* operator;
-    while(strcmp(currentItem, EQUALS_SYMBOL) != 0)
-    {
-        printf("R%d = %s\n", currentRegister++, currentItem);
-        currentItem = TableLookupByIndex(symbolTable, --instructionStart);
-        if(IsOperator(currentItem, operator) == 1)
-        {
-
-
-        }
-    }
-}
-
-int IsOperator(char* operand, char* operatorFound)
-{
-    if(strcmp(operand, PLUS_SYMBOL) == 0)
-    {
-        operatorFound = PLUS_SYMBOL;
-    }
-    else if(strcmp(operand, MINUS_SYMBOL) == 0)
-    {
-        operatorFound = MINUS_SYMBOL;
-    }
-    else if(strcmp(operand, TIMES_SYMBOL) == 0)
-    {
-        operatorFound = TIMES_SYMBOL;
-    }
-    else if(strcmp(operand, DIVIDES_SYMBOL) == 0)
-    {
-        operatorFound = DIVIDES_SYMBOL;
-    }
-    else
-        return 0;
-
-
+    char registerOperation[MAX_REGISTER_SIZE];
+    registerOperation[0] = '/0';
+    sprintf(registerOperation, "R%d = R%d %s R%d\n", registerCount--, --registerCount, operator, --registerCount);
+    printf("%s", registerOperation);
 }
