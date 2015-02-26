@@ -35,6 +35,7 @@
 #define BEGIN_INDEX 1
 #define END_INDEX 2
 #define NOT_IN_TABLE -1
+#define START_INDEX 4
 
 enum errmsg{
     MissingSquareBracket,   //Missing bracket
@@ -44,7 +45,7 @@ enum errmsg{
     UnterminatedComment,    //Comment not properly terminated
     SymbolBufferOverflow,   //If symbol length exceeds maximum symbol size
     SyntaxError,            //Generic syntax error
-    ExpectedAssignment,   //Invalid assignment
+    ExpectedAssignment,     //Invalid assignment
     InvalidLineEnding       //If improperly terminated line
 };
 typedef enum errmsg ErrorMessage;
@@ -183,6 +184,11 @@ void PrintSymbols();
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void HandleEndLine();
 
-void PrintCurrentSymbol();
 
+int NextEquation(int);
+
+
+void GetInstructions(int);
+
+int IsOperator(char*, char*);
 #endif
