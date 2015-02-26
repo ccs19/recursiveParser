@@ -14,6 +14,11 @@
 #define END 401
 #define DONE 402
 
+
+//Constants
+#define MAX_SYMBOL_SIZE 256
+#define MAX_REGISTER_SIZE 512
+
 //Operators
 #define TIMES '*'
 #define DIVIDES '/'
@@ -49,6 +54,11 @@ enum errmsg{
     InvalidLineEnding       //If improperly terminated line
 };
 typedef enum errmsg ErrorMessage;
+
+typedef struct {
+    int registerCount;
+    char assignTo[MAX_SYMBOL_SIZE];
+}RegisterCounter;
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -187,4 +197,8 @@ void HandleEndLine();
 void PrintNextOperand(const char*);
 
 void DoArithmetic(const char*);
+
+void ExtractSymbol(char *symbol, int *underScoreCount, int *symbolSize);
+
+void InitRegisterStruct();
 #endif

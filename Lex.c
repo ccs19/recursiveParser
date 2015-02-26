@@ -20,9 +20,7 @@ int m_lineNumber = 1;       //Current line number
 int m_lookAhead = 0;
 int nextChar = 0;
 
-//Constants
-#define MAX_SYMBOL_SIZE 256
-#define MAX_REGISTER_SIZE 512
+
 
 //Constant operator strings
 #define OPERATOR_SIZE 2
@@ -36,12 +34,8 @@ const char END_OF_LINE_SYMBOL[OPERATOR_SIZE] = ";\0";
 
 
 //Next operand and register counter
-int registerCount = 0;
-
-void myMethod();
-
+RegisterCounter rc;
 char nextOperand[MAX_SYMBOL_SIZE];
-char assignTo[MAX_SYMBOL_SIZE];
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*  FUNCTION:   main
@@ -68,24 +62,20 @@ int main(int argc, const char* argv[]) {
     }
     else
     {
-        myMethod();
+        InitRegisterStruct();
+        m_lookAhead = Lexan();
+        Match(BEGIN);
+        while(m_lookAhead != END)
+        {
+            AssignStatement();
+        }
+        Match(END);
+        Match('.');
     }
 
     PrintSymbols();
     EmptyTable(symbolTable); //We're done! Good times were had by all!
     return 0;
-}
-
-void myMethod() {
-    m_lookAhead;
-    m_lookAhead = Lexan();
-    Match(BEGIN);
-    while(m_lookAhead != END)
-        {
-            AssignStatement();
-        }
-    Match(END);
-    Match('.');
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*  FUNCTION:   ReadySymbolTable
@@ -133,6 +123,7 @@ int Lexan()
         if(nextChar == SEMICOLON)
         {
             HandleEndLine();
+            rc.registerCount = 0;
         }
         else if(nextChar == TILDA) //Handle comments
         {
@@ -245,12 +236,7 @@ int FindSymbol()
     symbol[symbolSize] = nextChar;
     while(isalpha(nextChar) || nextChar == UNDERSCORE || isdigit(nextChar)) //
     {
-        if(nextChar == '_') underScoreCount++;
-        else underScoreCount = 0;
-        if(underScoreCount > 1) PrintSyntaxError(IllegalIdentifier); //If consecutive underscores, invalid
-        if(symbolSize == MAX_SYMBOL_SIZE-1) PrintSyntaxError(SymbolBufferOverflow); //If no room for null char
-        symbol[symbolSize++] = nextChar;
-        nextChar = fgetc(m_file);
+        ExtractSymbol(symbol, &underScoreCount, &symbolSize);
     }
     symbol[symbolSize] = '\0'; //Insert null char
     ungetc(nextChar, m_file);
@@ -274,6 +260,25 @@ int FindSymbol()
     }
     PrintNextOperand(symbol);
     return ID;
+}
+
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   ExtractSymbol
+    Extracts the symbol
+    @param  char*           -- The symbol to fill
+    @param  int*            -- The underscore counter
+    @param  int*            -- The maximum size of the symbol
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void ExtractSymbol(char *symbol, int *underScoreCount, int *symbolSize) {
+    if(nextChar == UNDERSCORE) (*underScoreCount)++;
+        else (*underScoreCount) = 0;
+    if((*underScoreCount) > 1) PrintSyntaxError(IllegalIdentifier); //If consecutive underscores, invalid
+    if((*symbolSize) == MAX_SYMBOL_SIZE-1) PrintSyntaxError(SymbolBufferOverflow); //If no room for null char
+    symbol[(*symbolSize)++] = nextChar;
+    nextChar = fgetc(m_file);
 }
 
 
@@ -311,20 +316,15 @@ void Match(int type)
 void AssignStatement()
 {
     Match(ID);
-    // PrintCurrentSymbol();
     if(m_lookAhead != EQUALS)
     {
         PrintSyntaxError(ExpectedAssignment);
     }
     else
     {
-        //   PrintCurrentSymbol();
         Match(m_lookAhead);
-        //PrintCurrentSymbol();
         Expression();
-        // PrintCurrentSymbol();
     }
-    //PrintCurrentSymbol();
 
 }
 
@@ -394,8 +394,17 @@ void Expression()
     Term();
     while(m_lookAhead == PLUS || m_lookAhead == MINUS)
     {
+        int operator = m_lookAhead;
         Match(m_lookAhead);
         Term();
+        if(operator == PLUS)
+        {
+            DoArithmetic(PLUS_SYMBOL);
+        }
+        else if(operator == MINUS)
+        {
+            DoArithmetic(MINUS_SYMBOL);
+        }
     }
 
 }
@@ -428,11 +437,16 @@ void PrintSymbols()
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int FindDigit()
 {
-    while(isdigit(nextChar)) //Tested good! :D
+    char nextDigit[MAX_SYMBOL_SIZE];
+    int digitIndex = 0;
+    while(isdigit(nextChar))
     {
+        nextDigit[digitIndex++] = nextChar; //Put digit into string buffer
         nextChar = fgetc(m_file);
     }
     ungetc(nextChar, m_file);
+    nextDigit[digitIndex] = '\0';           //Null terminate digit string
+    PrintNextOperand(nextDigit);
     return NUM;
 }
 
@@ -449,13 +463,16 @@ void HandleEndLine()
     while( nextChar == SPACE || nextChar == TAB ) //ignore spaces and tabs
         nextChar = fgetc(m_file);
     if( nextChar == NEWLINE || nextChar == EOF)
+    {
         m_lineNumber++;
+    }
+
 }
 
 
 void PrintNextOperand(const char* operand)
 {
-    sprintf(nextOperand, "R%d = %s\n", registerCount++, operand);
+    sprintf(nextOperand, "R%d = %s\n", rc.registerCount++, operand);
     printf("%s",nextOperand);
 }
 
@@ -463,6 +480,12 @@ void DoArithmetic(const char* operator)
 {
     char registerOperation[MAX_REGISTER_SIZE];
     registerOperation[0] = '/0';
-    sprintf(registerOperation, "R%d = R%d %s R%d\n", registerCount--, --registerCount, operator, --registerCount);
+    sprintf(registerOperation, "R%d = R%d %s R%d\n", rc.registerCount--, --rc.registerCount, operator, --rc.registerCount);
     printf("%s", registerOperation);
+}
+
+void InitRegisterStruct()
+{
+    rc.assignTo[0] = '\0';
+    rc.registerCount = 0;
 }
