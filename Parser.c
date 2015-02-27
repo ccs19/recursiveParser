@@ -15,7 +15,13 @@ char nextOperand[MAX_SYMBOL_SIZE];         //Buffer to hold operands
 char assignmentTo[MAX_SYMBOL_SIZE];        //Buffer to hold registers
 char assignmentBuffer[MAX_SYMBOL_SIZE*4];  //Buffer to hold result and postfix
 int assignmentOperator;                    //Determines whether or not we have an assignment
+FILE* compiledFile;
+char compiledFileName[FILENAME_MAX];
 
+//Postfix decoration
+const char POSTFIX_START[MAX_SYMBOL_SIZE] = "*****[\0";
+const char POSTFIX_END[MAX_SYMBOL_SIZE] = "]*****\n\0";
+const char FILE_EXTENSION[MAX_SYMBOL_SIZE] = ".out\0";
 
 
 
@@ -76,7 +82,7 @@ int FindSymbol(int* nextChar, FILE* file, Vector* symbolTable, Vector* postfixRe
     {
         return END;
     }
-    if( assignmentOperator == 1 )
+    if( assignmentOperator == 1 || GetPrintResult() == 1 )
     {
         assignmentOperator = 0;
         memcpy(assignmentTo, symbol, MAX_SYMBOL_SIZE);
@@ -86,22 +92,18 @@ int FindSymbol(int* nextChar, FILE* file, Vector* symbolTable, Vector* postfixRe
     return ID;
 }
 
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-/*  FUNCTION:   OpenFileStream
-    Opens the file stream
-    @param  fileName       -- The name of the file to open
-    @param  filePtr        -- A file pointer
-    @return                -- void
- */
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-int OpenFileStream(const char*);
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*  FUNCTION:   HandleEndLine
     Gracefully handles end of line statements and returns current line number
-    @return                -- void
+    @param      nextChar   -- Pointer to current character
+    @param      file       -- The file to handle
+    @param      lineNumber -- The line number counter
+    @return                -- The current line number
  */
+
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int HandleEndLine(int* nextChar, FILE* file, int* lineNumber)
 {
@@ -116,7 +118,13 @@ int HandleEndLine(int* nextChar, FILE* file, int* lineNumber)
     return *lineNumber;
 }
 
-////////////////////////////////////////////////////////////////
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   SetRegisterCount
+    Sets the register counter to the desired number
+    @param      count      -- The value to set the register to
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void DoArithmetic(const char* operator, Vector* postfixResult)
 {
     char registerOperation[MAX_REGISTER_SIZE];
@@ -125,7 +133,7 @@ void DoArithmetic(const char* operator, Vector* postfixResult)
             rc.registerCount - 2,
             rc.registerCount - 2,
             operator, rc.registerCount - 1);                    //Print Registernum = Register operator register
-    printf("%s", registerOperation);
+    fprintf(compiledFile, "%s", registerOperation);
     rc.registerCount--;
     char *operatorToAdd = malloc(sizeof(char) * OPERATOR_SIZE);
     memcpy(operatorToAdd, operator, sizeof(OPERATOR_SIZE));          //Copy operator to table for postfix
@@ -134,7 +142,13 @@ void DoArithmetic(const char* operator, Vector* postfixResult)
 
 
 
-////////////////////////////////////////////////////////////////
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   SetRegisterCount
+    Sets the register counter to the desired number
+    @param      count      -- The value to set the register to
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void ExtractSymbol(int* nextChar, char *symbol, int *underScoreCount, int *symbolSize, FILE* file)
 {
     if(*nextChar == UNDERSCORE) (*underScoreCount)++;
@@ -146,11 +160,17 @@ void ExtractSymbol(int* nextChar, char *symbol, int *underScoreCount, int *symbo
 }
 
 
-////////////////////////////////////////////////////////////////
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   SetRegisterCount
+    Sets the register counter to the desired number
+    @param      count      -- The value to set the register to
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void PrintNextOperand(const char* operand, Vector* postfixResult)
 {
     sprintf(nextOperand, "R%d = %s\n", rc.registerCount++, operand); //Print register num and operand string
-    printf("%s",nextOperand);
+    fprintf(compiledFile,"%s",nextOperand);
     char *operandToAdd = malloc(sizeof(char) * MAX_SYMBOL_SIZE);
     operandToAdd[0] = '\0';
     strcat(operandToAdd, operand);                //Copy operand to table for postfix printing
@@ -158,32 +178,52 @@ void PrintNextOperand(const char* operand, Vector* postfixResult)
 }
 
 
-////////////////////////////////////////////////////////////////
-void AssignResultAndPrintPostfix(Vector* postfixResult)
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   SetRegisterCount
+    Sets the register counter to the desired number
+    @param      count      -- The value to set the register to
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void AppendResult(Vector* postfixResult)
 {
     assignmentBuffer[0] = '\0';     //Empty assignmentBuffer
-    char tempString[256];           //Temp string to hold results and postfix
+    char tempString[MAX_SYMBOL_SIZE];           //Temp string to hold results and postfix
     tempString[0] = '\0';
 
     sprintf(tempString, "%s = R0\n", assignmentTo);
     strcat(assignmentBuffer,tempString);
+    SetAssignmentOperator(1);
+}
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   SetRegisterCount
+    Sets the register counter to the desired number
+    @param      count      -- The value to set the register to
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void AppendPostfix(Vector *postfixResult) {
+    char tempString[MAX_SYMBOL_SIZE];
+    tempString[0] = '\0';
+
+    strcat(assignmentBuffer, POSTFIX_START);
+
     int i;
     for(i = 0; i < postfixResult->size-1; i++)
     {
         sprintf(tempString, "%s,", TableLookupByIndex(postfixResult, i));
         strcat(assignmentBuffer, tempString);   //Concat all postfix to assnBuffer
     }
-    sprintf(tempString,"%s\n", TableLookupByIndex(postfixResult, i));
+    sprintf(tempString,"%s", TableLookupByIndex(postfixResult, i));
     strcat(assignmentBuffer, tempString);
 
+    strcat(assignmentBuffer, POSTFIX_END);
 
     EmptyTable(postfixResult);      //Empty the postfix table and create a new one
     NewSymbolTable(postfixResult);
-    SetAssignmentOperator(1);
-    EmptyAssignmentString();        //Empty the assignTo string
+
 }
-
-
 
 
 void SetAssignmentOperator(int num)
@@ -191,18 +231,69 @@ void SetAssignmentOperator(int num)
     assignmentOperator = num;
 }
 
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   SetRegisterCount
+    Sets the register counter to the desired number
+    @param      count      -- The value to set the register to
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void SetRegisterCount(int count)
 {
     rc.registerCount = count;
 }
 
-//Empty
-void EmptyAssignmentString()
-{
-    assignmentTo[0] = '\0';
-}
-
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   PrintResult
+    Prints the assignmentBuffer containing the final assignment statement
+    and the postFix to the output file.
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void PrintResult()
 {
-    printf("%s", assignmentBuffer);
+    fprintf(compiledFile, "%s", assignmentBuffer);
+}
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   OpenOutputFileStream
+    Opens the file stream for writing. The name of the output file is set to fileName.FILE_EXTENSION
+    @param  fileName       -- The name of the input file
+    @return                -- 1 on success, 0 on failure
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+int OpenOutputFileStream(const char* fileName)
+{
+    char* token;
+    compiledFileName[0] = '\0';
+    token = strtok((char*)fileName, ".");  //If file has extension, remove it
+
+    strcat(compiledFileName, token);
+    strcat(compiledFileName, FILE_EXTENSION);
+    compiledFile = fopen(compiledFileName, "w");
+
+    printf("%s\n", compiledFileName);
+    return (compiledFile == NULL ? 0 : 1); //If failed to open file, return 0, else 1;
+}
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   OpenOutputFileStream
+    Closes the output file and saves or deletes it if compilation fails.
+    @param  success        -- If 1, the output file is saved. If 0, the output is not saved
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void CloseOutputFileStream(int success)
+{
+    if(success == 1)
+    {
+        fclose(compiledFile);
+    }
+    else
+    {
+        fclose(compiledFile);
+        remove(compiledFileName);
+    }
 }

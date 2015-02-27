@@ -30,7 +30,7 @@ int FindSymbol(int*, FILE*, Vector*, Vector*);
     @return                -- void
  */
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-int OpenFileStream(const char*);
+int OpenInputFileStream(const char *);
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -52,7 +52,7 @@ void ExtractSymbol(int*, char*, int* , int*, FILE*);
 
 void PrintNextOperand(const char*, Vector*);
 
-void AssignResultAndPrintPostfix(Vector*);
+void AppendResult(Vector *);
 
 
 void SetAssignmentOperator(int);
@@ -64,4 +64,10 @@ void SetRegisterCount(int);
 void EmptyAssignmentString();
 
 void PrintResult();
+
+void AppendPostfix(Vector *postfixResult);
+
+int OpenOutputFileStream(const char*);
+
+void CloseOutputFileStream();
 #endif

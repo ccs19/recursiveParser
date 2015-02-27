@@ -87,7 +87,7 @@ void Factor();
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void PrintSymbols();
 
-
+int GetPrintResult();
 
 void ConsumeEmptyChars();
 #endif

@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "Lex.h"
-#include "Constants.h"
+//#include "Constants.h"
 
 
 
@@ -50,14 +50,18 @@ int main(int argc, const char* argv[]) {
         printf("Usage: ./%s <filename>\n", argv[1]);
         return 0;
     }
-    else if(!OpenFileStream(argv[1])) //We failed to open file
+    else if(!OpenInputFileStream(argv[1])) //We failed to open file
     {
         printf("Failed to open file %s\n", argv[1]);
         return 0;
     }
     else
     {
-        EmptyAssignmentString();
+        if(OpenOutputFileStream(argv[1]) == 0)
+        {
+            printf("Failed to open file output\n");
+            exit(1);
+        }
         SetAssignmentOperator(1);  //First assignment statement
         m_lookAhead = Lexan();
         Match(BEGIN);
@@ -72,6 +76,7 @@ int main(int argc, const char* argv[]) {
 
     PrintSymbols();
     EmptyTable(symbolTable); //We're done! Good times were had by all!
+    CloseOutputFileStream(1);
     return 0;
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -124,7 +129,7 @@ int Lexan()
         {
             m_lineNumber = HandleEndLine(&nextChar, m_file, &m_lineNumber);
             printResult = 1;
-            AssignResultAndPrintPostfix(postfixResult);
+            AppendResult(postfixResult);
         }
         else if(nextChar == TILDA) //Handle comments
         {
@@ -163,14 +168,14 @@ int Lexan()
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-/*  FUNCTION:   OpenFileStream
+/*  FUNCTION:   OpenInputFileStream
     Opens the file stream
     @param  fileName       -- The name of the file to open
     @return                -- void
  */
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-int OpenFileStream(const char* fileName) //TODO add argument from argv
+int OpenInputFileStream(const char *fileName) //TODO add argument from argv
 {
     m_file = fopen(fileName, "r");
     return (m_file == NULL ? 0 : 1); //If failed to open file, return 0, else 1;
@@ -305,6 +310,7 @@ void Expression()
     }
     if(printResult == 1)
     {
+        AppendPostfix(postfixResult);
         printResult = 0;
         PrintResult();
     }
@@ -375,5 +381,11 @@ void PrintSyntaxError(ErrorMessage errorMessage)
     }
     printf("\n");
     fflush(stdout);
+    CloseOutputFileStream(0); //Delete .out file
     exit(1);
+}
+
+int GetPrintResult()
+{
+    return printResult;
 }
