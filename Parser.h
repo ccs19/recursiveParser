@@ -53,12 +53,7 @@ int OpenInputFileStream(const char *);
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int HandleEndLine(int*, FILE*, int*);
 
-
 void DoArithmetic(const char*, Vector*);
-
-
-RegisterCounter* InitRegisterStruct();
-
 
 void ExtractSymbol(int*, char*, int* , int*, FILE*);
 
@@ -66,14 +61,9 @@ void PrintNextOperand(const char*, Vector*);
 
 void AppendResult();
 
-
 void SetAssignmentOperator(int);
 
-int GetAssignmentOperatorValue();
-
 void SetRegisterCount(int);
-
-void EmptyAssignmentString();
 
 void PrintResult();
 
