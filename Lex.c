@@ -1,7 +1,13 @@
-
-
-
-
+/*
+ * =====================================================================================
+ *
+ *	Author: Christopher Schneider
+ *	File Name: Lex.c
+ *	Assignment Number: 2
+ *
+ *	Description: Lex.c implementation
+ * =====================================================================================
+ */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -10,7 +16,6 @@
 #include <unistd.h>
 #include <string.h>
 #include "Lex.h"
-//#include "Constants.h"
 
 
 
@@ -22,6 +27,8 @@ int m_lineNumber = 1;       //Current line number
 int m_lookAhead = 0;
 int nextChar = 0;
 int printResult = 0;
+
+
 
 
 //Constant operator strings
@@ -62,26 +69,38 @@ int main(int argc, const char* argv[]) {
             printf("Failed to open file output\n");
             exit(1);
         }
-        SetAssignmentOperator(1);  //First assignment statement
-        m_lookAhead = Lexan();
-        Match(BEGIN);
-        while(m_lookAhead != END)
+        BeginAnalyze();  //Start the program
+    }
+    PrintSymbols();
+    EmptyTable(symbolTable); //We're done! Good times were had by all!
+    CloseOutputFileStream(1, postfixResult);//Close .out file and destroy vector
+    return 0;
+}
+
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   BeginAnalyze
+    Begins Lexical analyzer and parser.
+    @return                -- void
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void BeginAnalyze() {
+    SetAssignmentOperator(1);  //First assignment statement
+    m_lookAhead = Lexan();
+    Match(BEGIN);
+    while(m_lookAhead != END)
         {
             SetRegisterCount(0);  //Reset registers
             AssignStatement();
         }
-        Match(END);
-        Match('.');
-    }
-
-    PrintSymbols();
-    EmptyTable(symbolTable); //We're done! Good times were had by all!
-    CloseOutputFileStream(1);
-    return 0;
+    Match(END);
+    Match('.');
 }
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*  FUNCTION:   ReadySymbolTable
-    Readies the symbol table and adds the first two entries
+    Readies the symbol table and adds the first two entries. Also initializes
+    the postfix table
     @return                -- 0 if fails, 1 if success
  */
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -106,8 +125,7 @@ int ReadySymbolTable()
         InsertSymbol(symbolTable, begin);
         InsertSymbol(symbolTable, end);
 
-        //TODO Clean this up
-        NewSymbolTable(postfixResult);
+        NewSymbolTable(postfixResult); //Init empty postfix table
 
         return 1;
     }
@@ -381,10 +399,18 @@ void PrintSyntaxError(ErrorMessage errorMessage)
     }
     printf("\n");
     fflush(stdout);
-    CloseOutputFileStream(0); //Delete .out file
+    CloseOutputFileStream(0, postfixResult); //Delete .out file and free vector
     exit(1);
 }
 
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  FUNCTION:   GetPrintResult
+    Returns the printResult variable for the Parser.c file to know when to flush
+    the result to the file
+    @return                -- printResult value
+ */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int GetPrintResult()
 {
     return printResult;

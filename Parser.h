@@ -1,3 +1,15 @@
+/*
+ * =====================================================================================
+ *
+ *	Author: Christopher Schneider
+ *	File Name: Parser.h
+ *	Assignment Number: 2
+ *
+ *	Description: Parser header file. Handles all string parsing and writing the .out
+ *               "compiled" data to a file
+ * =====================================================================================
+ */
+
 #ifndef _PARSER_H
 #define _PARSER_H
 
@@ -52,7 +64,7 @@ void ExtractSymbol(int*, char*, int* , int*, FILE*);
 
 void PrintNextOperand(const char*, Vector*);
 
-void AppendResult(Vector *);
+void AppendResult();
 
 
 void SetAssignmentOperator(int);
@@ -69,5 +81,5 @@ void AppendPostfix(Vector *postfixResult);
 
 int OpenOutputFileStream(const char*);
 
-void CloseOutputFileStream();
+void CloseOutputFileStream(int, Vector*);
 #endif

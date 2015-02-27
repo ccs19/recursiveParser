@@ -1,3 +1,15 @@
+/*
+ * =====================================================================================
+ *
+ *	Author: Christopher Schneider
+ *	File Name: Lex.h
+ *	Assignment Number: 2
+ *
+ *	Description: Handles all the matching logic for the recursive descent
+ * =====================================================================================
+ */
+
+
 #ifndef LEX_H
 #define LEX_H
 
@@ -87,7 +99,9 @@ void Factor();
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void PrintSymbols();
 
+
 int GetPrintResult();
 
-void ConsumeEmptyChars();
+
+void BeginAnalyze();
 #endif
