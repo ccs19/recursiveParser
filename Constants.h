@@ -34,9 +34,8 @@
 #define BEGIN_INDEX 1
 #define END_INDEX 2
 #define NOT_IN_TABLE -1
-#define START_INDEX 4
 
-#define OPERATOR_SIZE 2
+#define OPERATOR_SIZE 3
 
 enum errmsg{
     MissingSquareBracket,   //Missing bracket

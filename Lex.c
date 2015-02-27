@@ -36,7 +36,6 @@ const char TIMES_SYMBOL[OPERATOR_SIZE] = "*\0";
 const char DIVIDES_SYMBOL[OPERATOR_SIZE] = "/\0";
 const char PLUS_SYMBOL[OPERATOR_SIZE] = "+\0";
 const char MINUS_SYMBOL[OPERATOR_SIZE] = "-\0";
-const char EQUALS_SYMBOL[OPERATOR_SIZE] = "=\0";
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -147,7 +146,7 @@ int Lexan()
         {
             m_lineNumber = HandleEndLine(&nextChar, m_file, &m_lineNumber);
             printResult = 1;
-            AppendResult(postfixResult);
+            AppendResult();
         }
         else if(nextChar == TILDA) //Handle comments
         {
@@ -193,7 +192,7 @@ int Lexan()
  */
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-int OpenInputFileStream(const char *fileName) //TODO add argument from argv
+int OpenInputFileStream(const char *fileName)
 {
     m_file = fopen(fileName, "r");
     return (m_file == NULL ? 0 : 1); //If failed to open file, return 0, else 1;
